@@ -41,9 +41,15 @@ class Preprocessor:
 
     @staticmethod
     def _preprocess_text(text: str) -> str:
-        text = re.sub(r"[^\w\s]", "", text)
+        # Remove punctuation except for .,!?
+        text = re.sub(r'[^\w\s.,!?]', '', text)
+
+        # Remove repeated spaces
         text = re.sub(r"\s+", " ", text).strip()
-        return text.lower()
+
+        text = f"<start_of_turn> {text} <end_of_turn>"
+        text = text.lower()
+        return text
 
     @staticmethod
     def preprocess_data(data_path: str, tokenizer: GPT2Tokenizer, max_length,

@@ -9,6 +9,7 @@ print(f"Using device: {config.DEVICE}")
 
 tokenizer = GPT2Tokenizer.from_pretrained(config.MODEL_NAME)
 tokenizer.pad_token = tokenizer.eos_token
+tokenizer.add_special_tokens({'additional_special_tokens': ['<start_of_turn>', '<end_of_turn>']})
 
 dataset = Preprocessor.preprocess_data(
     config.DATA_PATH,
@@ -31,6 +32,7 @@ print(f"Validation set size: {len(dataset_dict["validation"])}")
 print(f"Test set size: {len(dataset_dict["test"])}")
 
 model = ChatbotModel(GPT2Config.from_pretrained(config.MODEL_NAME))
+model.resize_token_embeddings(len(tokenizer))
 
 trainer = Trainer(
     model=model,
