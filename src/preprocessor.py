@@ -46,8 +46,8 @@ class Preprocessor:
         return text.lower()
 
     @staticmethod
-    def preprocess_data(data_path: str, tokenizer: GPT2Tokenizer, max_length: int = 512,
-                        save_path: str = "preprocessed_dataset", subset_proportion: float = 1.0) -> Dataset:
+    def preprocess_data(data_path: str, tokenizer: GPT2Tokenizer, max_length,
+                        save_path: str, subset_proportion: float = 1.0) -> Dataset:
         if os.path.exists(save_path):
             print(f"Loading preprocessed dataset from {save_path}")
             return load_from_disk(save_path)
