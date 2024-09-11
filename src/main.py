@@ -1,15 +1,13 @@
 from datasets import DatasetDict
-from transformers import GPT2Config, GPT2Tokenizer, Trainer, DataCollatorForLanguageModeling, TrainingArguments
+from transformers import Trainer, DataCollatorForLanguageModeling, TrainingArguments, AutoModelForCausalLM, \
+    AutoTokenizer
 
 import config
-from src.chatbot_model import ChatbotModel
 from src.preprocessor import Preprocessor
 
 print(f"Using device: {config.DEVICE}")
 
-tokenizer = GPT2Tokenizer.from_pretrained(config.MODEL_NAME)
-tokenizer.pad_token = tokenizer.eos_token
-tokenizer.add_special_tokens({'additional_special_tokens': ['<start_of_turn>', '<end_of_turn>']})
+tokenizer = AutoTokenizer.from_pretrained(config.MODEL_NAME)
 
 dataset = Preprocessor.preprocess_data(
     config.DATA_PATH,
@@ -27,12 +25,15 @@ dataset_dict = DatasetDict({
     "test": test_valid["test"]
 })
 
-print(f"Train set size: {len(dataset_dict["train"])}")
-print(f"Validation set size: {len(dataset_dict["validation"])}")
-print(f"Test set size: {len(dataset_dict["test"])}")
+print(f"Train set size: {len(dataset_dict['train'])}")
+print(f"Validation set size: {len(dataset_dict['validation'])}")
+print(f"Test set size: {len(dataset_dict['test'])}")
 
-model = ChatbotModel(GPT2Config.from_pretrained(config.MODEL_NAME))
-model.resize_token_embeddings(len(tokenizer))
+model = AutoModelForCausalLM.from_pretrained(
+    config.MODEL_NAME,
+    torch_dtype="auto",
+    device_map="auto",
+)
 
 trainer = Trainer(
     model=model,

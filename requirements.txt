@@ -5,3 +5,4 @@ torchaudio==2.4.1+cu124
 torchvision==0.19.1+cu124
 datasets==2.21
 accelerate==0.34.2
+sentencepiece==0.2.0
