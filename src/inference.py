@@ -32,8 +32,7 @@ def generate_response(input_text: str, max_length: int = 50) -> str:
         model_inputs.input_ids,
         attention_mask=attention_mask,
         pad_token_id=tokenizer.pad_token_id,
-        max_new_tokens=max_length,
-        skip_special_tokens=True
+        max_new_tokens=max_length
     )
 
     generated_ids = [

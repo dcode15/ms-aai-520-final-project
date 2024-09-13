@@ -11,7 +11,7 @@ LOGS_DIR = "./logs"
 # Model configuration
 MODEL_NAME = "Qwen/Qwen2-0.5B"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-SYSTEM_PROMPT = "Use a theatrical, conversational tone for all responses."
+SYSTEM_PROMPT = "You are a friendly conversation partner. Match the user's conversational tone for all responses."
 
 # Training parameters
 DATA_SUBSET_PROPORTION = 0.01
@@ -31,7 +31,7 @@ TRAINER_ARGS = {
 }
 
 # Inference parameters
-USE_BASE_MODEL = True
+USE_BASE_MODEL = False
 INFERENCE_MAX_LENGTH = 64
 INFERENCE_PARAMS = {
     "no_repeat_ngram_size": 2,
