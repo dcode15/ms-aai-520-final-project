@@ -1,9 +1,8 @@
 import os
-import random
-import re
 
 from datasets import Dataset, load_from_disk
-from transformers import GPT2Tokenizer
+
+import config
 
 
 class Preprocessor:
@@ -12,12 +11,12 @@ class Preprocessor:
         movie_lines_path = os.path.join(data_path, "movie_lines.txt")
         movie_conversations_path = os.path.join(data_path, "movie_conversations.txt")
 
-        lines_data = {}
-        with open(movie_lines_path, "r", encoding="iso-8859-1") as f:
+        lines = {}
+        with open(movie_lines_path, "r") as f:
             for line in f:
                 parts = line.strip().split(" +++$+++ ")
                 if len(parts) == 5:
-                    lines_data[parts[0]] = parts[4]
+                    lines[parts[0]] = parts[4]
 
         conversations = []
         with open(movie_conversations_path, "r", encoding="iso-8859-1") as f:
@@ -31,8 +30,8 @@ class Preprocessor:
         for conversation in conversations:
             for i in range(len(conversation) - 1):
                 try:
-                    context = lines_data[conversation[i]]
-                    response = lines_data[conversation[i + 1]]
+                    context = lines[conversation[i]]
+                    response = lines[conversation[i + 1]]
                     conversation_pairs.append((context, response))
                 except KeyError as e:
                     print(f"Unrecognized line key: {e}")
@@ -40,54 +39,24 @@ class Preprocessor:
         return conversation_pairs
 
     @staticmethod
-    def _preprocess_text(text: str) -> str:
-        # Remove punctuation except for .,!?
-        text = re.sub(r'[^\w\s.,!?]', '', text)
-
-        # Remove repeated spaces
-        text = re.sub(r"\s+", " ", text).strip()
-
-        text = f"<start_of_turn> {text} <end_of_turn>"
-        text = text.lower()
-        return text
+    def _format_conversation(conversation):
+        user_prompt = f"<|im_start|>user\n{conversation[0]}<|im_end|>"
+        output = f"<|im_start|>assistant\n{conversation[1]}<|im_end|>"
+        return f"{user_prompt}\n{output}<|endoftext|>"
 
     @staticmethod
-    def preprocess_data(data_path: str, tokenizer: GPT2Tokenizer, max_length,
-                        save_path: str, subset_proportion: float = 1.0) -> Dataset:
-        if os.path.exists(save_path):
-            print(f"Loading preprocessed dataset from {save_path}")
-            return load_from_disk(save_path)
+    def prepare_dataset():
+        if os.path.exists(config.PREPROCESSED_DATA_PATH):
+            print(f"Loading preprocessed dataset from {config.PREPROCESSED_DATA_PATH}")
+            dataset = load_from_disk(config.PREPROCESSED_DATA_PATH)
+        else:
+            conversations = Preprocessor._load_cornell_corpus(config.DATA_PATH)
+            formatted_conversations = [Preprocessor._format_conversation(conversation) for conversation in
+                                       conversations]
+            dataset = Dataset.from_dict({"text": formatted_conversations})
 
-        print("Preprocessed dataset not found. Starting preprocessing...")
-        conversation_pairs = Preprocessor._load_cornell_corpus(data_path)
+            print(f"Saving preprocessed dataset to {config.PREPROCESSED_DATA_PATH}")
+            dataset.save_to_disk(config.PREPROCESSED_DATA_PATH)
 
-        if subset_proportion < 1.0:
-            num_pairs = int(len(conversation_pairs) * subset_proportion)
-            conversation_pairs = random.sample(conversation_pairs, num_pairs)
-
-        preprocessed_data = []
-        for context, response in conversation_pairs:
-            context = Preprocessor._preprocess_text(context)
-            response = Preprocessor._preprocess_text(response)
-
-            full_text = f"{context}{tokenizer.eos_token}{response}{tokenizer.eos_token}"
-
-            encodings = tokenizer.encode_plus(
-                full_text,
-                max_length=max_length,
-                padding="max_length",
-                truncation=True,
-                return_tensors="pt"
-            )
-
-            preprocessed_data.append({
-                "input_ids": encodings["input_ids"].squeeze().tolist(),
-                "attention_mask": encodings["attention_mask"].squeeze().tolist()
-            })
-
-        dataset = Dataset.from_list(preprocessed_data)
-
-        print(f"Saving preprocessed dataset to {save_path}")
-        dataset.save_to_disk(save_path)
-
-        return dataset
+        subset_size = int(len(dataset) * config.DATA_SUBSET_PROPORTION)
+        return dataset.select(range(subset_size))

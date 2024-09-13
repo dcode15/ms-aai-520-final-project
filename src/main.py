@@ -1,51 +1,27 @@
-from datasets import DatasetDict
-from transformers import Trainer, DataCollatorForLanguageModeling, TrainingArguments, AutoModelForCausalLM, \
-    AutoTokenizer
+from peft import LoraConfig, get_peft_model
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from trl.trainer import SFTTrainer, SFTConfig
 
 import config
-from src.preprocessor import Preprocessor
+from preprocessor import Preprocessor
 
-print(f"Using device: {config.DEVICE}")
+dataset = Preprocessor.prepare_dataset()
 
+train_test = dataset.train_test_split(test_size=0.2, seed=1)
+
+model = AutoModelForCausalLM.from_pretrained(config.MODEL_NAME)
 tokenizer = AutoTokenizer.from_pretrained(config.MODEL_NAME)
 
-dataset = Preprocessor.preprocess_data(
-    config.DATA_PATH,
-    tokenizer,
-    save_path=config.PREPROCESSED_DATA_PATH,
-    subset_proportion=config.DATA_SUBSET_PROPORTION,
-    max_length=config.TRAINING_MAX_LENGTH
-)
+model = get_peft_model(model, LoraConfig(**config.LORA_ARGS))
 
-train_testvalid = dataset.train_test_split(test_size=0.3)
-test_valid = train_testvalid["test"].train_test_split(test_size=0.5)
-dataset_dict = DatasetDict({
-    "train": train_testvalid["train"],
-    "validation": test_valid["train"],
-    "test": test_valid["test"]
-})
-
-print(f"Train set size: {len(dataset_dict['train'])}")
-print(f"Validation set size: {len(dataset_dict['validation'])}")
-print(f"Test set size: {len(dataset_dict['test'])}")
-
-model = AutoModelForCausalLM.from_pretrained(
-    config.MODEL_NAME,
-    torch_dtype="auto",
-    device_map="auto",
-)
-
-trainer = Trainer(
+trainer = SFTTrainer(
     model=model,
-    args=TrainingArguments(**config.TRAINER_ARGS),
-    train_dataset=dataset_dict["train"],
-    eval_dataset=dataset_dict["validation"],
-    data_collator=DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False),
+    tokenizer=tokenizer,
+    args=SFTConfig(**config.TRAINER_ARGS),
+    train_dataset=train_test['train'],
+    eval_dataset=train_test['test']
 )
 
 trainer.train()
-trainer.save_model(config.TRAINED_MODEL_PATH)
-tokenizer.save_pretrained(config.TRAINED_MODEL_PATH)
 
-eval_results = trainer.evaluate(eval_dataset=dataset_dict["test"])
-print(f"Evaluation results: {eval_results}")
+trainer.save_model(config.TRAINED_MODEL_PATH)

@@ -10,16 +10,20 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 
+messages = [{"role": "system",
+             "content": config.SYSTEM_PROMPT}, ]
+
 
 def generate_response(input_text: str, max_length: int = 50) -> str:
-    messages = [
-        {"role": "system", "content": "You are a friendly chatbot."},
-        {"role": "user", "content": input_text},
-    ]
+    messages.append({
+        "role": "user",
+        "content": input_text
+    })
     text = tokenizer.apply_chat_template(
         messages,
         tokenize=False,
         add_generation_prompt=True,
+        add_special_tokens=True,
     )
     model_inputs = tokenizer([text], return_tensors="pt").to(config.DEVICE)
     attention_mask = model_inputs.input_ids.ne(tokenizer.pad_token_id).long().to(config.DEVICE)
@@ -27,18 +31,18 @@ def generate_response(input_text: str, max_length: int = 50) -> str:
     output = model.generate(
         model_inputs.input_ids,
         attention_mask=attention_mask,
-        max_new_tokens=128
+        pad_token_id=tokenizer.pad_token_id,
+        max_new_tokens=max_length,
+        skip_special_tokens=True
     )
 
     generated_ids = [
         output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, output)
     ]
     generated_text = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-    parts = generated_text.split("<endheader>")
-    if len(parts) > 2:
-        return parts[1].strip()
-    else:
-        return generated_text.strip()
+    reply = generated_text.split("\n")[0]
+    messages.append({"role": "assistant", "content": reply})
+    return reply
 
 
 # Example usage
