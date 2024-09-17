@@ -45,5 +45,5 @@ RLHF_LLM_CONFIG = {
     "temperature": 0,
     "max_retries": 3
 }
-RLHF_DATASET_PATH = "./rlhf_dataset"
+RLHF_DATA_PATH = "./rlhf_dataset/rlhf_data.pkl"
 RLHF_MODEL_OUTPUT_DIR = "./rlhf_trained_model"

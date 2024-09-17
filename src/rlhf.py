@@ -1,9 +1,9 @@
 import os
+import pickle
 import random
-from typing import List, Tuple
+from pathlib import Path
 
 import instructor
-from datasets import Dataset
 from openai import OpenAI
 from tqdm import tqdm
 
@@ -14,7 +14,7 @@ from rlhf_queries import queries
 llm_client = instructor.from_openai(OpenAI())
 
 
-def create_rlhf_dataset(num_samples: int = 5) -> Dataset:
+def create_rlhf_dataset(num_samples: int = 1) -> list[tuple]:
     data = []
     for _ in tqdm(range(num_samples), desc="Creating RLHF dataset"):
         query = random.choice(queries)
@@ -33,20 +33,19 @@ def create_rlhf_dataset(num_samples: int = 5) -> Dataset:
             "no_repeat_ngram_size": 2
         })
 
-        data.append({
-            "query": query,
-            "response1": response1,
-            "response2": response2,
-        })
+        preference = get_claude_preference(query, response1, response2)
+        chosen_response = response1 if preference == 1 else response2
+        rejected_response = response2 if preference == 1 else response1
 
-    dataset = Dataset.from_dict({
-        "query": [item["query"] for item in data],
-        "response1": [item["response1"] for item in data],
-        "response2": [item["response2"] for item in data],
-    })
+        data.append((
+            query,
+            chosen_response,
+            rejected_response,
+            1.0,
+            -1.0
+        ))
 
-    dataset.save_to_disk(config.RLHF_DATASET_PATH)
-    return dataset
+    return data
 
 
 def get_claude_preference(query: str, response1: str, response2: str) -> int:
@@ -69,32 +68,14 @@ Which response is better? Answer with either 1 or 2 and nothing else."""
     return int(response.strip())
 
 
-def prepare_rlhf_data(dataset: Dataset) -> List[Tuple[str, str, str, float, float]]:
-    rlhf_data = []
-    for item in tqdm(dataset, desc="Preparing RLHF data"):
-        preference = get_claude_preference(item["query"], item["response1"], item["response2"])
-
-        chosen = item["response1"] if preference == 1 else item["response2"]
-        rejected = item["response2"] if preference == 1 else item["response1"]
-
-        rlhf_data.append((
-            item["query"],
-            chosen,
-            rejected,
-            1.0,
-            -1.0
-        ))
-
-    return rlhf_data
-
-
 if __name__ == "__main__":
-    if os.path.exists(config.RLHF_DATASET_PATH):
-        print(f"Loading existing RLHF dataset from {config.RLHF_DATASET_PATH}")
-        rlhf_dataset = Dataset.load_from_disk(config.RLHF_DATASET_PATH)
+    if os.path.exists(config.RLHF_DATA_PATH):
+        print(f"Loading existing RLHF dataset from {config.RLHF_DATA_PATH}")
+        with open(config.RLHF_DATA_PATH, 'rb') as file:
+            rlhf_data = pickle.load(file)
     else:
         print("Creating new RLHF dataset...")
-        rlhf_dataset = create_rlhf_dataset()
-
-    print("Getting Claude preferences...")
-    rlhf_data = prepare_rlhf_data(rlhf_dataset)
+        rlhf_data = create_rlhf_dataset()
+        Path(config.RLHF_DATA_PATH).parent.mkdir(parents=True, exist_ok=True)
+        with open(config.RLHF_DATA_PATH, 'wb') as file:
+            pickle.dump(rlhf_data, file)
