@@ -14,13 +14,13 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 SYSTEM_PROMPT = "You are a friendly conversation partner. Match the user's conversational tone for all responses."
 
 # Training parameters
-DATA_SUBSET_PROPORTION = 0.01
+DATA_SUBSET_PROPORTION = 1
 LORA_ARGS = {
     "task_type": TaskType.CAUSAL_LM
 }
 TRAINER_ARGS = {
     "output_dir": MODEL_OUTPUT_DIR,
-    "num_train_epochs": 1,
+    "num_train_epochs": 2,
     "per_device_train_batch_size": 4,
     "per_device_eval_batch_size": 4,
     "load_best_model_at_end": True,
@@ -38,3 +38,12 @@ INFERENCE_PARAMS = {
     "temperature": 0.7,
     "do_sample": True
 }
+
+# RLHF parameters
+RLHF_LLM_CONFIG = {
+    "model": "gpt-4o-mini",
+    "temperature": 0,
+    "max_retries": 3
+}
+RLHF_DATASET_PATH = "./rlhf_dataset"
+RLHF_MODEL_OUTPUT_DIR = "./rlhf_trained_model"

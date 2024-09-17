@@ -14,7 +14,7 @@ messages = [{"role": "system",
              "content": config.SYSTEM_PROMPT}, ]
 
 
-def generate_response(input_text: str, max_length: int = 50) -> str:
+def generate_response(input_text: str, max_length: int = 50, config_override: dict = None) -> str:
     messages.append({
         "role": "user",
         "content": input_text
@@ -28,11 +28,13 @@ def generate_response(input_text: str, max_length: int = 50) -> str:
     model_inputs = tokenizer([text], return_tensors="pt").to(config.DEVICE)
     attention_mask = model_inputs.input_ids.ne(tokenizer.pad_token_id).long().to(config.DEVICE)
 
+    params = config_override if config_override is not None else config.INFERENCE_PARAMS
     output = model.generate(
         model_inputs.input_ids,
         attention_mask=attention_mask,
         pad_token_id=tokenizer.pad_token_id,
-        max_new_tokens=max_length
+        max_new_tokens=max_length,
+        **params
     )
 
     generated_ids = [
@@ -44,7 +46,6 @@ def generate_response(input_text: str, max_length: int = 50) -> str:
     return reply
 
 
-# Example usage
 if __name__ == "__main__":
     model_type = "base" if config.USE_BASE_MODEL else "fine-tuned"
     print(f"Chatbot: Hello! I'm your AI assistant using the {model_type} model. How can I help you today?")
