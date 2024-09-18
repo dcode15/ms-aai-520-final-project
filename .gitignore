@@ -1,10 +1,6 @@
 data
 venv
 environment
-
-src/chatbot_output
-src/chatbot_trained_model
-src/preprocessed_dataset
-src/rlhf_dataset
+out
 
 *.pyc

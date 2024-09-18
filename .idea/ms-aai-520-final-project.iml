@@ -3,12 +3,8 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/data" />
-      <excludeFolder url="file://$MODULE_DIR$/src/chatbot_trained_model" />
-      <excludeFolder url="file://$MODULE_DIR$/src/preprocessed_dataset" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
-      <excludeFolder url="file://$MODULE_DIR$/src/chatbot_trained_model" />
-      <excludeFolder url="file://$MODULE_DIR$/src/chatbot_output" />
-      <excludeFolder url="file://$MODULE_DIR$/src/rlhf_dataset" />
+      <excludeFolder url="file://$MODULE_DIR$/out" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.12 (ms-aai-520-final-project)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

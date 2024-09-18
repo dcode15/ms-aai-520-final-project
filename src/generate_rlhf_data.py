@@ -14,7 +14,7 @@ from rlhf_queries import queries
 llm_client = instructor.from_openai(OpenAI())
 
 
-def create_rlhf_dataset(num_samples: int = 1) -> list[tuple]:
+def create_rlhf_dataset(num_samples: int = 250) -> list[tuple]:
     data = []
     for _ in tqdm(range(num_samples), desc="Creating RLHF dataset"):
         query = random.choice(queries)

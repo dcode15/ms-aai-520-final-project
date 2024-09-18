@@ -3,11 +3,13 @@ from peft import TaskType
 
 # Paths
 DATA_PATH = "../data/"
-PREPROCESSED_DATA_PATH = "./preprocessed_dataset"
-MODEL_OUTPUT_DIR = "./chatbot_output"
-TRAINED_MODEL_PATH = "./chatbot_trained_model"
-RLHF_MODEL_OUTPUT_DIR = "./rlhf_chatbot_output"
-RLHF_TRAINED_MODEL_PATH = "./rlhf_chatbot_trained_model"
+PREPROCESSED_DATA_PATH = "../out/preprocessed_dataset"
+MODEL_OUTPUT_DIR = "../out/chatbot_model_output"
+TRAINED_MODEL_PATH = "../out/trained_chatbot_model"
+RLHF_DATA_PATH = "../out/rlhf_dataset/rlhf_data.pkl"
+RLHF_MODEL_OUTPUT_DIR = "../out/reward_model_output"
+RLHF_TRAINED_MODEL_PATH = "../out/trained_reward_model"
+
 LOGS_DIR = "./logs"
 
 # Model configuration
@@ -48,12 +50,11 @@ RLHF_LLM_CONFIG = {
     "temperature": 0,
     "max_retries": 3
 }
-RLHF_DATA_PATH = "./rlhf_dataset/rlhf_data.pkl"
 RLHF_TRAINER_ARGS = {
     "output_dir": RLHF_MODEL_OUTPUT_DIR,
     "num_train_epochs": 2,
-    "per_device_train_batch_size": 4,
-    "per_device_eval_batch_size": 4,
+    "per_device_train_batch_size": 2,
+    "per_device_eval_batch_size": 2,
     "load_best_model_at_end": True,
     "eval_strategy": "steps",
     "remove_unused_columns": False,
