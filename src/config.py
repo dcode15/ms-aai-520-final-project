@@ -6,6 +6,8 @@ DATA_PATH = "../data/"
 PREPROCESSED_DATA_PATH = "./preprocessed_dataset"
 MODEL_OUTPUT_DIR = "./chatbot_output"
 TRAINED_MODEL_PATH = "./chatbot_trained_model"
+RLHF_MODEL_OUTPUT_DIR = "./rlhf_chatbot_output"
+RLHF_TRAINED_MODEL_PATH = "./rlhf_chatbot_trained_model"
 LOGS_DIR = "./logs"
 
 # Model configuration
@@ -27,7 +29,8 @@ TRAINER_ARGS = {
     "eval_strategy": "steps",
     "dataset_text_field": "text",
     "packing": True,
-    "max_seq_length": 512
+    "max_seq_length": 512,
+    "neftune_noise_alpha": 5
 }
 
 # Inference parameters
@@ -46,4 +49,13 @@ RLHF_LLM_CONFIG = {
     "max_retries": 3
 }
 RLHF_DATA_PATH = "./rlhf_dataset/rlhf_data.pkl"
-RLHF_MODEL_OUTPUT_DIR = "./rlhf_trained_model"
+RLHF_TRAINER_ARGS = {
+    "output_dir": RLHF_MODEL_OUTPUT_DIR,
+    "num_train_epochs": 2,
+    "per_device_train_batch_size": 4,
+    "per_device_eval_batch_size": 4,
+    "load_best_model_at_end": True,
+    "eval_strategy": "steps",
+    "remove_unused_columns": False,
+    "max_length": TRAINER_ARGS["max_seq_length"]
+}
