@@ -7,8 +7,8 @@ PREPROCESSED_DATA_PATH = "../out/preprocessed_dataset"
 MODEL_OUTPUT_DIR = "../out/chatbot_model_output"
 TRAINED_MODEL_PATH = "../out/trained_chatbot_model"
 RLHF_DATA_PATH = "../out/rlhf_dataset/rlhf_data.pkl"
-RLHF_MODEL_OUTPUT_DIR = "../out/reward_model_output"
-RLHF_TRAINED_MODEL_PATH = "../out/trained_reward_model"
+REWARD_MODEL_OUTPUT_DIR = "../out/reward_model_output"
+TRAINED_REWARD_MODEL_PATH = "../out/trained_reward_model"
 
 LOGS_DIR = "./logs"
 
@@ -18,11 +18,11 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 SYSTEM_PROMPT = "You are a friendly conversation partner. Match the user's conversational tone for all responses."
 
 # Training parameters
-DATA_SUBSET_PROPORTION = 1
-LORA_ARGS = {
+TUNING_DATA_SUBSET_PROPORTION = 1
+TUNING_LORA_ARGS = {
     "task_type": TaskType.CAUSAL_LM
 }
-TRAINER_ARGS = {
+TUNING_TRAINER_ARGS = {
     "output_dir": MODEL_OUTPUT_DIR,
     "num_train_epochs": 2,
     "per_device_train_batch_size": 4,
@@ -32,6 +32,7 @@ TRAINER_ARGS = {
     "dataset_text_field": "text",
     "packing": True,
     "max_seq_length": 512,
+    "fp16": True,
     "neftune_noise_alpha": 5
 }
 
@@ -50,13 +51,18 @@ RLHF_LLM_CONFIG = {
     "temperature": 0,
     "max_retries": 3
 }
-RLHF_TRAINER_ARGS = {
-    "output_dir": RLHF_MODEL_OUTPUT_DIR,
-    "num_train_epochs": 2,
+REWARD_MODEL_LORA_ARGS = {
+    "task_type": TaskType.CAUSAL_LM
+}
+REWARD_MODEL_TRAINER_ARGS = {
+    "output_dir": REWARD_MODEL_OUTPUT_DIR,
+    "num_train_epochs": 4,
     "per_device_train_batch_size": 2,
     "per_device_eval_batch_size": 2,
     "load_best_model_at_end": True,
     "eval_strategy": "steps",
     "remove_unused_columns": False,
-    "max_length": TRAINER_ARGS["max_seq_length"]
+    "max_length": TUNING_TRAINER_ARGS["max_seq_length"],
+    "fp16": True,
+    "gradient_accumulation_steps": 2
 }

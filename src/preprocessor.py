@@ -58,5 +58,5 @@ class Preprocessor:
             print(f"Saving preprocessed dataset to {config.PREPROCESSED_DATA_PATH}")
             dataset.save_to_disk(config.PREPROCESSED_DATA_PATH)
 
-        subset_size = int(len(dataset) * config.DATA_SUBSET_PROPORTION)
+        subset_size = int(len(dataset) * config.TUNING_DATA_SUBSET_PROPORTION)
         return dataset.select(range(subset_size))
