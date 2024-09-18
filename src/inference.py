@@ -10,11 +10,13 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 
-messages = [{"role": "system",
-             "content": config.SYSTEM_PROMPT}, ]
 
+def generate_response(input_text: str, previous_messages=None, max_length: int = 50,
+                      config_override: dict = None) -> str:
+    messages = previous_messages
+    if previous_messages is None:
+        messages = [{"role": "system", "content": config.SYSTEM_PROMPT}]
 
-def generate_response(input_text: str, max_length: int = 50, config_override: dict = None) -> str:
     messages.append({
         "role": "user",
         "content": input_text
