@@ -1,4 +1,4 @@
-import pickle
+import json
 
 import torch
 from datasets import Dataset
@@ -10,14 +10,10 @@ import config
 
 
 def load_rlhf_data() -> Dataset:
-    with open(config.RLHF_DATA_PATH, 'rb') as file:
-        rlhf_data = pickle.load(file)
+    with open(config.RLHF_DATA_PATH, 'r') as file:
+        rlhf_data = json.load(file)
 
-    return Dataset.from_dict({
-        'prompt': [item[0] for item in rlhf_data],
-        'chosen': [item[1] for item in rlhf_data],
-        'rejected': [item[2] for item in rlhf_data]
-    })
+    return Dataset.from_list(rlhf_data)
 
 
 def formatting_func(examples, tokenizer):

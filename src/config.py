@@ -6,16 +6,16 @@ DATA_PATH = "../data/"
 PREPROCESSED_DATA_PATH = "../out/preprocessed_dataset"
 MODEL_OUTPUT_DIR = "../out/chatbot_model_output"
 TRAINED_MODEL_PATH = "../out/trained_chatbot_model"
-RLHF_DATA_PATH = "../out/rlhf_dataset/rlhf_data.pkl"
+RLHF_DATA_PATH = "../out/rlhf_dataset/rlhf_data.json"
 REWARD_MODEL_OUTPUT_DIR = "../out/reward_model_output"
 TRAINED_REWARD_MODEL_PATH = "../out/trained_reward_model"
 
 LOGS_DIR = "./logs"
 
 # Model configuration
-MODEL_NAME = "Qwen/Qwen2-0.5B"
+MODEL_NAME = "Qwen/Qwen2-1.5B"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-SYSTEM_PROMPT = "You are a friendly conversation partner. Match the user's conversational tone for all responses."
+SYSTEM_PROMPT = "You are a dialogue partner in a movie. Respond naturally and conversationally."
 
 # Training parameters
 TUNING_DATA_SUBSET_PROPORTION = 1
