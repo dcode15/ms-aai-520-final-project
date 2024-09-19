@@ -25,8 +25,8 @@ TUNING_LORA_ARGS = {
 TUNING_TRAINER_ARGS = {
     "output_dir": MODEL_OUTPUT_DIR,
     "num_train_epochs": 2,
-    "per_device_train_batch_size": 4,
-    "per_device_eval_batch_size": 4,
+    "per_device_train_batch_size": 1,
+    "per_device_eval_batch_size": 1,
     "load_best_model_at_end": True,
     "eval_strategy": "steps",
     "dataset_text_field": "text",
@@ -34,7 +34,7 @@ TUNING_TRAINER_ARGS = {
     "max_seq_length": 512,
     "fp16": True,
     "neftune_noise_alpha": 5,
-    "gradient_accumulation_steps": 2
+    "gradient_accumulation_steps": 8
 }
 
 # Inference parameters
