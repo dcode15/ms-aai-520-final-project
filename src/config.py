@@ -33,7 +33,8 @@ TUNING_TRAINER_ARGS = {
     "packing": True,
     "max_seq_length": 512,
     "fp16": True,
-    "neftune_noise_alpha": 5
+    "neftune_noise_alpha": 5,
+    "gradient_accumulation_steps": 2
 }
 
 # Inference parameters
@@ -64,5 +65,5 @@ REWARD_MODEL_TRAINER_ARGS = {
     "remove_unused_columns": False,
     "max_length": TUNING_TRAINER_ARGS["max_seq_length"],
     "fp16": True,
-    "gradient_accumulation_steps": 2
+    "gradient_accumulation_steps": 4
 }

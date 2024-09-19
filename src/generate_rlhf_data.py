@@ -8,7 +8,7 @@ from openai import OpenAI
 from tqdm import tqdm
 
 import config
-from inference import generate_response
+from inference import Chatbot
 from rlhf_queries import queries
 
 llm_client = instructor.from_openai(OpenAI())
@@ -16,16 +16,21 @@ llm_client = instructor.from_openai(OpenAI())
 
 def create_rlhf_dataset(num_samples: int = 250) -> list[tuple]:
     data = []
+    chatbot = Chatbot()
     for _ in tqdm(range(num_samples), desc="Creating RLHF dataset"):
         query = random.choice(queries)
-        response1 = generate_response(query, max_length=config.INFERENCE_MAX_LENGTH, config_override={
+
+        chatbot.start_conversation()
+        response1 = chatbot.generate_response(query, max_length=config.INFERENCE_MAX_LENGTH, config_override={
             "do_sample": True,
             "temperature": random.uniform(0.7, 1.0),
             "top_k": random.randint(20, 50),
             "top_p": random.uniform(0.9, 1.0),
             "no_repeat_ngram_size": 2
         })
-        response2 = generate_response(query, max_length=config.INFERENCE_MAX_LENGTH, config_override={
+
+        chatbot.start_conversation()
+        response2 = chatbot.generate_response(query, max_length=config.INFERENCE_MAX_LENGTH, config_override={
             "do_sample": True,
             "temperature": random.uniform(0.7, 1.0),
             "top_k": random.randint(20, 50),
