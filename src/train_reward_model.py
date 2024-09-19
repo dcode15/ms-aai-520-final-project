@@ -44,7 +44,7 @@ def main():
     model = get_peft_model(model, LoraConfig(**config.REWARD_MODEL_LORA_ARGS))
 
     tokenizer = AutoTokenizer.from_pretrained(config.MODEL_NAME)
-    tokenizer.add_special_tokens({"pad_token": "[PAD]"})
+    tokenizer.pad_token = tokenizer.eos_token
 
     dataset = rlhf_data.map(lambda examples: formatting_func(examples, tokenizer))
     dataset = dataset.train_test_split(test_size=0.2, seed=1)

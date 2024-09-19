@@ -1,6 +1,7 @@
 import json
 import random
 from pathlib import Path
+from typing import Optional
 
 import instructor
 from openai import OpenAI
@@ -38,19 +39,20 @@ def create_rlhf_dataset(num_samples: int = 250) -> list[dict]:
         })
 
         preference = get_response_preference(query, response1, response2)
-        chosen_response = response1 if preference == 1 else response2
-        rejected_response = response2 if preference == 1 else response1
+        if preference is not None:
+            chosen_response = response1 if preference == 1 else response2
+            rejected_response = response2 if preference == 1 else response1
 
-        data.append({
-            "prompt": query,
-            "chosen": chosen_response,
-            "rejected": rejected_response
-        })
+            data.append({
+                "prompt": query,
+                "chosen": chosen_response,
+                "rejected": rejected_response
+            })
 
     return data
 
 
-def get_response_preference(query: str, response1: str, response2: str) -> int:
+def get_response_preference(query: str, response1: str, response2: str) -> Optional[int]:
     prompt = f"""
 Given the following query and two possible responses, select the response that is most coherent and works best as dialogue from a movie. 
 Answer with either 1 or 2 and nothing else.
@@ -66,7 +68,12 @@ Response 2: {response2}"""
         messages=[{"role": "user", "content": prompt}],
         response_model=str
     )
-    return int(response.strip())
+
+    try:
+        return int(response.strip())
+    except ValueError:
+        print(f"Invalid LLM response: {response}")
+        return None
 
 
 if __name__ == "__main__":

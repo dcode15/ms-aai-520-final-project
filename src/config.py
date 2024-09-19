@@ -9,6 +9,7 @@ TRAINED_MODEL_PATH = "../out/trained_chatbot_model"
 RLHF_DATA_PATH = "../out/rlhf_dataset/rlhf_data.json"
 REWARD_MODEL_OUTPUT_DIR = "../out/reward_model_output"
 TRAINED_REWARD_MODEL_PATH = "../out/trained_reward_model"
+TRAINED_RLHF_MODEL_PATH = "../out/trained_rlhf_model"
 
 LOGS_DIR = "./logs"
 
@@ -57,7 +58,7 @@ REWARD_MODEL_LORA_ARGS = {
 }
 REWARD_MODEL_TRAINER_ARGS = {
     "output_dir": REWARD_MODEL_OUTPUT_DIR,
-    "num_train_epochs": 4,
+    "num_train_epochs": 1,
     "per_device_train_batch_size": 2,
     "per_device_eval_batch_size": 2,
     "load_best_model_at_end": True,
@@ -66,4 +67,7 @@ REWARD_MODEL_TRAINER_ARGS = {
     "max_length": TUNING_TRAINER_ARGS["max_seq_length"],
     "fp16": True,
     "gradient_accumulation_steps": 4
+}
+PPO_CONFIG = {
+    "model_name": MODEL_NAME
 }
