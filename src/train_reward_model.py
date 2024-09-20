@@ -2,8 +2,8 @@ import json
 
 import torch
 from datasets import Dataset
-from peft import LoraConfig, get_peft_model
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from peft import LoraConfig
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from trl import RewardTrainer, RewardConfig
 
 import config
@@ -40,11 +40,11 @@ def formatting_func(examples, tokenizer):
 def main():
     rlhf_data = load_rlhf_data()
 
-    model = AutoModelForCausalLM.from_pretrained(config.MODEL_NAME, torch_dtype=torch.float16)
-    model = get_peft_model(model, LoraConfig(**config.REWARD_MODEL_LORA_ARGS))
+    model = AutoModelForSequenceClassification.from_pretrained(config.MODEL_NAME, torch_dtype=torch.float16)
 
     tokenizer = AutoTokenizer.from_pretrained(config.MODEL_NAME)
-    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.add_special_tokens({"pad_token": "[PAD]"})
+    model.config.pad_token_id = tokenizer.pad_token_id
 
     dataset = rlhf_data.map(lambda examples: formatting_func(examples, tokenizer))
     dataset = dataset.train_test_split(test_size=0.2, seed=1)
@@ -55,6 +55,7 @@ def main():
         train_dataset=dataset["train"],
         eval_dataset=dataset["test"],
         args=RewardConfig(**config.REWARD_MODEL_TRAINER_ARGS),
+        peft_config=LoraConfig(**config.REWARD_MODEL_LORA_ARGS)
     )
 
     trainer.train()
