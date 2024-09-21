@@ -5,14 +5,21 @@ import config
 
 class Chatbot:
 
-    def __init__(self):
-        model_path = config.MODEL_NAME if config.USE_BASE_MODEL else config.TRAINED_MODEL_PATH
+    def __init__(self, model_override: str = None):
+        if model_override is not None:
+            model_path = model_override
+        elif config.USE_BASE_MODEL:
+            model_path = config.BASE_MODEL_NAME
+        else:
+            model_path = config.TRAINED_MODEL_PATH
+
         self.model = AutoModelForCausalLM.from_pretrained(
             model_path,
             torch_dtype="auto",
             device_map="auto",
         )
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+        self.tokenizer.add_special_tokens({"pad_token": "[PAD]"})
 
         self.conversation = []
         self.start_conversation()
