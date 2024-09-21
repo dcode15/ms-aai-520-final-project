@@ -14,7 +14,7 @@ TRAINED_RLHF_MODEL_PATH = "../out/trained_rlhf_model"
 LOGS_DIR = "./logs"
 
 # Model configuration
-MODEL_NAME = "Qwen/Qwen2-1.5B"
+BASE_MODEL_NAME = "Qwen/Qwen2-1.5B"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 SYSTEM_PROMPT = "You are a dialogue partner in a movie. Respond naturally and conversationally."
 
@@ -48,6 +48,7 @@ INFERENCE_PARAMS = {
 }
 
 # RLHF parameters
+BASE_REWARD_MODEL_NAME = "Qwen/Qwen2-0.5B"
 RLHF_LLM_CONFIG = {
     "model": "gpt-4o-mini",
     "temperature": 0,
@@ -58,16 +59,18 @@ REWARD_MODEL_LORA_ARGS = {
 }
 REWARD_MODEL_TRAINER_ARGS = {
     "output_dir": REWARD_MODEL_OUTPUT_DIR,
-    "num_train_epochs": 1,
-    "per_device_train_batch_size": 2,
-    "per_device_eval_batch_size": 2,
+    "num_train_epochs": 5,
+    "per_device_train_batch_size": 4,
+    "per_device_eval_batch_size": 4,
     "load_best_model_at_end": True,
     "eval_strategy": "steps",
     "remove_unused_columns": False,
     "max_length": TUNING_TRAINER_ARGS["max_seq_length"],
     "fp16": True,
-    "gradient_accumulation_steps": 4
+    "gradient_accumulation_steps": 2
 }
 PPO_CONFIG = {
-    "model_name": MODEL_NAME
+    "mini_batch_size": 1,
+    "batch_size": 1,
+    "gradient_accumulation_steps": 1
 }

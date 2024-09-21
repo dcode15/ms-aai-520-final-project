@@ -40,9 +40,9 @@ def formatting_func(examples, tokenizer):
 def main():
     rlhf_data = load_rlhf_data()
 
-    model = AutoModelForSequenceClassification.from_pretrained(config.MODEL_NAME, torch_dtype=torch.float16)
+    model = AutoModelForSequenceClassification.from_pretrained(config.BASE_REWARD_MODEL_NAME, torch_dtype=torch.float16)
 
-    tokenizer = AutoTokenizer.from_pretrained(config.MODEL_NAME)
+    tokenizer = AutoTokenizer.from_pretrained(config.BASE_REWARD_MODEL_NAME)
     tokenizer.add_special_tokens({"pad_token": "[PAD]"})
     model.config.pad_token_id = tokenizer.pad_token_id
 
