@@ -3,13 +3,13 @@ from peft import TaskType
 
 # Paths
 DATA_PATH = "../data/"
-PREPROCESSED_DATA_PATH = "../out/preprocessed_dataset"
-MODEL_OUTPUT_DIR = "../out/chatbot_model_output"
-TRAINED_MODEL_PATH = "../out/trained_chatbot_model"
-RLHF_DATA_PATH = "../out/rlhf_dataset/rlhf_data.json"
-REWARD_MODEL_OUTPUT_DIR = "../out/reward_model_output"
-TRAINED_REWARD_MODEL_PATH = "../out/trained_reward_model"
-TRAINED_RLHF_MODEL_PATH = "../out/trained_rlhf_model"
+PREPROCESSED_DATA_PATH = "./out/preprocessed_dataset"
+MODEL_OUTPUT_DIR = "./out/chatbot_model_output"
+TRAINED_MODEL_PATH = "./trained_chatbot_model"
+RLHF_DATA_PATH = "./out/rlhf_dataset/rlhf_data.json"
+REWARD_MODEL_OUTPUT_DIR = "./out/reward_model_output"
+TRAINED_REWARD_MODEL_PATH = "./out/trained_reward_model"
+TRAINED_RLHF_MODEL_PATH = "./out/trained_rlhf_model"
 
 LOGS_DIR = "./logs"
 

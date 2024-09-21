@@ -27,7 +27,8 @@ class Chatbot:
     def start_conversation(self):
         self.conversation = [{"role": "system", "content": config.SYSTEM_PROMPT}]
 
-    def generate_response(self, input_text: str, max_length: int = 50, config_override: dict = None) -> str:
+    def generate_response(self, input_text: str, max_length: int = config.INFERENCE_MAX_LENGTH,
+                          config_override: dict = None) -> str:
         self.conversation.append({
             "role": "user",
             "content": input_text
@@ -60,8 +61,7 @@ class Chatbot:
 
 
 if __name__ == "__main__":
-    model_type = "base" if config.USE_BASE_MODEL else "fine-tuned"
-    print(f"Chatbot: Hello! I'm your AI assistant using the {model_type} model. How can I help you today?")
+    print(f"Chatbot: Hello! I'm your AI assistant. How can I help you today?")
     chatbot = Chatbot()
     while True:
         user_input = input("You: ")
