@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from inference import Chatbot
 
 
-class Input(BaseModel):
+class ChatInput(BaseModel):
     message: str
 
 
@@ -28,7 +28,7 @@ def web_server(context):
     chatbot = context.on_start_value
 
     @app.post("/chat")
-    async def generate_text(message: Input):
+    async def generate_text(message: ChatInput):
         chatbot.start_conversation()
         return chatbot.generate_response(message.message)
 

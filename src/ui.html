@@ -3,81 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vue Chat Interface</title>
+    <title>LLM Chatbot</title>
     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.3.5/dist/vuetify.min.css" rel="stylesheet">
+    <style>
+        .chat-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messages-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            width: 70%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            max-width: 60%;
+            white-space: normal;
+            word-wrap: break-word;
+            height: auto !important;
+        }
+
+        .message-user {
+            align-self: flex-end;
+        }
+
+        .message-bot {
+            align-self: flex-start;
+        }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <v-app>
-            <v-main>
-                <v-container>
-                    <v-card class="mx-auto" max-width="800">
-                        <v-card-title>Chat Interface</v-card-title>
-                        <v-card-text>
-                            <v-list two-line>
-                                <v-list-item v-for="(message, index) in messages" :key="index">
-                                    <v-list-item-content>
-                                        <v-list-item-title>{{ message.sender }}</v-list-item-title>
-                                        <v-list-item-subtitle>{{ message.text }}</v-list-item-subtitle>
-                                    </v-list-item-content>
-                                </v-list-item>
-                            </v-list>
-                        </v-card-text>
-                        <v-card-actions>
-                            <v-text-field
-                                v-model="newMessage"
-                                label="Type your message"
-                                @keyup.enter="sendMessage"
-                            ></v-text-field>
-                            <v-btn @click="sendMessage" color="primary">Send</v-btn>
-                        </v-card-actions>
-                    </v-card>
+<div id="app">
+    <v-app>
+        <v-main class="bg-grey-lighten-4">
+            <v-container fluid class="chat-container pa-0">
+                <v-app-bar color="primary" density="compact">
+                    <v-app-bar-title>LLM Chatbot</v-app-bar-title>
+                </v-app-bar>
+                <v-container class="messages-container">
+                    <transition-group name="slide-y-transition">
+                        <v-chip
+                                v-for="(message, index) in messages"
+                                :key="index"
+                                :class="['message', message.sender === 'User' ? 'message-user' : 'message-bot']"
+                                :color="message.sender === 'User' ? 'blue-darken-3' : 'grey-darken-3'"
+                                variant="outlined"
+                        >
+                            <template v-slot:prepend>
+                                <v-icon :icon="message.sender === 'User' ? 'mdi-account' : 'mdi-robot'"></v-icon>
+                            </template>
+                            <span class="px-3 py-2">
+                                    <template v-if="message.isLoaded">
+                                        {{ message.text }}
+                                    </template>
+                                    <template v-else>
+                                        <v-progress-circular color="grey-darken-3" :size="25" indeterminate></v-progress-circular>
+                                    </template>
+                                </span>
+                        </v-chip>
+                    </transition-group>
                 </v-container>
-            </v-main>
-        </v-app>
-    </div>
+                <v-footer app>
+                    <v-container class="w-75">
+                        <v-form @submit.prevent="sendMessage">
+                            <v-row no-gutters>
+                                <v-col>
+                                    <v-text-field
+                                            v-model="newMessage"
+                                            placeholder="Type your message"
+                                            variant="outlined"
+                                            density="comfortable"
+                                            hide-details
+                                            class="mr-2"
+                                    ></v-text-field>
+                                </v-col>
+                                <v-col cols="auto">
+                                    <v-btn type="submit" color="primary" elevation="0" class="h-100">
+                                        <v-icon icon="mdi-send"></v-icon>
+                                    </v-btn>
+                                </v-col>
+                            </v-row>
+                        </v-form>
+                    </v-container>
+                </v-footer>
+            </v-container>
+        </v-main>
+    </v-app>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
-    <script>
-        new Vue({
-            el: '#app',
-            vuetify: new Vuetify(),
-            data: {
-                messages: [],
-                newMessage: '',
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@3.3.5/dist/vuetify.min.js"></script>
+<script>
+    const {createApp, ref, nextTick} = Vue;
+    const {createVuetify} = Vuetify;
+
+    const vuetify = createVuetify({
+        theme: {
+            defaultTheme: 'light',
+            themes: {
+                light: {
+                    colors: {
+                        primary: '#1976D2',
+                    },
+                },
             },
-            methods: {
-                sendMessage() {
-                    if (this.newMessage.trim()) {
-                        this.messages.push({ sender: 'User', text: this.newMessage });
+        },
+    });
 
-                        // Replace 'YOUR_API_ENDPOINT' with the actual URL you want to post to
-                        fetch('https://5ea8b8dc-7ab3-4c16-9b16-04fa45a04670.app.beam.cloud/chat', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Connection': 'keep-alive',
-                                'Authorization': ''
-                            },
-                            body: JSON.stringify({ message: this.newMessage }),
-                        })
+    const app = createApp({
+        setup() {
+            const messages = ref([]);
+            const newMessage = ref('');
+
+            const sendMessage = () => {
+                if (newMessage.value.trim()) {
+                    messages.value.push({sender: 'User', text: newMessage.value, isLoaded: true});
+                    messages.value.push({sender: 'Bot', text: null, isLoaded: false});
+
+                    fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Connection': 'keep-alive',
+                            'Authorization': ''
+                        },
+                        body: JSON.stringify({message: newMessage.value}),
+                    })
                         .then(response => response.json())
                         .then(data => {
-                            console.log(data)
-                            this.messages.push({ sender: 'Bot', text: data });
+                            console.log(data);
+                            messages.value.pop()
+                            messages.value.push({sender: 'Bot', text: data, isLoaded: true});
+                            nextTick(() => {
+                                scrollToBottom();
+                            });
                         })
                         .catch(error => {
                             console.error('Error:', error);
-                            this.messages.push({ sender: 'Bot', text: 'Sorry, there was an error processing your request.' });
+                            messages.value.push({
+                                sender: 'Bot',
+                                text: 'Sorry, there was an error processing your request.',
+                                isLoaded: true
+                            });
+                            nextTick(() => {
+                                scrollToBottom();
+                            });
                         });
 
-                        this.newMessage = '';
-                    }
-                },
-            },
-        })
-    </script>
+                    newMessage.value = '';
+                }
+            };
+
+            const scrollToBottom = () => {
+                const container = document.querySelector('.messages-container');
+                container.scrollTop = container.scrollHeight;
+            };
+
+            return {
+                messages,
+                newMessage,
+                sendMessage,
+            };
+        },
+    });
+
+    app.use(vuetify).mount('#app');
+</script>
 </body>
 </html>
