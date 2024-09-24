@@ -12,7 +12,7 @@ class Preprocessor:
         movie_conversations_path = os.path.join(data_path, "movie_conversations.txt")
 
         lines = {}
-        with open(movie_lines_path, "r") as f:
+        with open(movie_lines_path, "r", encoding="iso-8859-1") as f:
             for line in f:
                 parts = line.strip().split(" +++$+++ ")
                 if len(parts) == 5:

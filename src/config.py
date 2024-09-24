@@ -14,7 +14,7 @@ TRAINED_RLHF_MODEL_PATH = "./out/trained_rlhf_model"
 LOGS_DIR = "./logs"
 
 # Model configuration
-BASE_MODEL_NAME = "Qwen/Qwen2-1.5B"
+BASE_MODEL_NAME = "Qwen/Qwen2.5-3B"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 SYSTEM_PROMPT = "You are a dialogue partner in a movie. Respond naturally and conversationally."
 
@@ -35,7 +35,8 @@ TUNING_TRAINER_ARGS = {
     "max_seq_length": 512,
     "fp16": True,
     "neftune_noise_alpha": 5,
-    "gradient_accumulation_steps": 8
+    "gradient_accumulation_steps": 8,
+    "optim": "adamw_bnb_8bit"
 }
 
 # Inference parameters

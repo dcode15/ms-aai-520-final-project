@@ -1,4 +1,4 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 import config
 
@@ -13,10 +13,12 @@ class Chatbot:
         else:
             model_path = config.TRAINED_MODEL_PATH
 
+        quantization_config = BitsAndBytesConfig(load_in_8bit=True)
         self.model = AutoModelForCausalLM.from_pretrained(
             model_path,
             torch_dtype="auto",
             device_map="auto",
+            quantization_config=quantization_config,
         )
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         self.tokenizer.add_special_tokens({"pad_token": "[PAD]"})

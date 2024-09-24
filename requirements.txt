@@ -1,8 +1,5 @@
 transformers==4.44.2
 pandas==2.2.2
-torch==2.4.1+cu124
-torchaudio==2.4.1+cu124
-torchvision==0.19.1+cu124
 datasets==2.21
 accelerate==0.34.2
 sentencepiece==0.2.0
@@ -10,3 +7,4 @@ trl==0.10.1
 peft==0.12.0
 instructor==1.4.2
 beam-client==0.2.77
+bitsandbytes==0.43.3

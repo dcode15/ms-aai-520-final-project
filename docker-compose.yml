@@ -1,0 +1,30 @@
+version: '3'
+
+x-common-params: &common-params
+  build: .
+  volumes:
+    - ./data:/usr/llm/data
+    - ./src:/usr/llm/src
+    - model-cache:/model_cache
+  tty: true
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: [ gpu ]
+
+services:
+  fine-tune:
+    <<: *common-params
+    entrypoint: ["python", "fine_tune_model.py"]
+  inference:
+    <<: *common-params
+    entrypoint: [ "python", "inference.py" ]
+
+
+
+
+volumes:
+  model-cache:
