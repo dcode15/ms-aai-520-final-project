@@ -45,7 +45,53 @@
             <v-container fluid class="chat-container pa-0">
                 <v-app-bar color="primary" density="compact">
                     <v-app-bar-title>LLM Chatbot</v-app-bar-title>
+                    <v-spacer></v-spacer>
+                    <v-app-bar-nav-icon variant="text" icon="mdi-cog" @click.stop="settingsOpen = !settingsOpen"></v-app-bar-nav-icon>
                 </v-app-bar>
+                <v-navigation-drawer
+                        v-model="settingsOpen"
+                        location="right"
+                        width="500"
+                        temporary
+                >
+                    <v-container>
+                        <v-row class="py-4 px-2">
+                            <v-text-field
+                                    v-model.number="topK"
+                                    label="Top K"
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    hint="Number of highest probability vocabulary tokens to keep for top-k-filtering"
+                                    persistent-hint
+                            ></v-text-field>
+                        </v-row>
+                        <v-row class="py-4 px-2">
+                            <v-slider
+                                    v-model="topP"
+                                    label="Top P"
+                                    min="0"
+                                    max="1"
+                                    step="0.01"
+                                    thumb-label="always"
+                                    hint="Cumulative probability for top-p-filtering"
+                                    persistent-hint
+                            ></v-slider>
+                        </v-row>
+                        <v-row class="py-4 px-2">
+                            <v-slider
+                                    v-model="temperature"
+                                    label="Temperature"
+                                    min="0"
+                                    max="2"
+                                    step="0.1"
+                                    thumb-label="always"
+                                    hint="Controls randomness in generation (higher = more random)"
+                                    persistent-hint
+                            ></v-slider>
+                        </v-row>
+                    </v-container>
+                </v-navigation-drawer>
                 <v-container class="messages-container">
                     <transition-group name="slide-y-transition">
                         <v-chip
@@ -63,7 +109,8 @@
                                         {{ message.text }}
                                     </template>
                                     <template v-else>
-                                        <v-progress-circular color="grey-darken-3" :size="25" indeterminate></v-progress-circular>
+                                        <v-progress-circular color="grey-darken-3" :size="25"
+                                                             indeterminate></v-progress-circular>
                                     </template>
                                 </span>
                         </v-chip>
@@ -120,6 +167,10 @@
         setup() {
             const messages = ref([]);
             const newMessage = ref('');
+            const settingsOpen = ref(false);
+            const temperature = ref(0.3)
+            const topK = ref(20)
+            const topP = ref(0.95)
 
             const sendMessage = () => {
                 if (newMessage.value.trim()) {
@@ -146,6 +197,7 @@
                         })
                         .catch(error => {
                             console.error('Error:', error);
+                            messages.value.pop()
                             messages.value.push({
                                 sender: 'Bot',
                                 text: 'Sorry, there was an error processing your request.',
@@ -169,6 +221,10 @@
                 messages,
                 newMessage,
                 sendMessage,
+                settingsOpen,
+                temperature,
+                topK,
+                topP
             };
         },
     });
