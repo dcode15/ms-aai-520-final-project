@@ -22,6 +22,12 @@ services:
   inference:
     <<: *common-params
     entrypoint: [ "python", "inference.py" ]
+  train_reward_model:
+    <<: *common-params
+    entrypoint: [ "python", "train_reward_model.py" ]
+  rlaif:
+    <<: *common-params
+    entrypoint: [ "python", "rlhf.py" ]
 
 
 

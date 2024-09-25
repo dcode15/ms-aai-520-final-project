@@ -21,7 +21,13 @@ SYSTEM_PROMPT = "You are a dialogue partner in a movie. Respond naturally and co
 # Training parameters
 TUNING_DATA_SUBSET_PROPORTION = 1
 TUNING_LORA_ARGS = {
-    "task_type": TaskType.CAUSAL_LM
+    "task_type": TaskType.CAUSAL_LM,
+    "r": 8,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "bias": "none",
+    "target_modules": ["q_proj", "v_proj"],
+    "inference_mode": False,
 }
 TUNING_TRAINER_ARGS = {
     "output_dir": MODEL_OUTPUT_DIR,
@@ -53,26 +59,32 @@ INFERENCE_PARAMS = {
 }
 
 # RLHF parameters
-BASE_REWARD_MODEL_NAME = "Qwen/Qwen2-0.5B"
+BASE_REWARD_MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 RLHF_LLM_CONFIG = {
     "model": "gpt-4o-mini",
     "temperature": 0,
     "max_retries": 3
 }
 REWARD_MODEL_LORA_ARGS = {
-    "task_type": TaskType.CAUSAL_LM
+    "task_type": TaskType.CAUSAL_LM,
+    "r": 8,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "bias": "none",
+    "target_modules": ["q_proj", "v_proj"],
+    "inference_mode": False,
 }
 REWARD_MODEL_TRAINER_ARGS = {
     "output_dir": REWARD_MODEL_OUTPUT_DIR,
     "num_train_epochs": 5,
-    "per_device_train_batch_size": 4,
-    "per_device_eval_batch_size": 4,
+    "per_device_train_batch_size": 1,
+    "per_device_eval_batch_size": 1,
     "load_best_model_at_end": True,
     "eval_strategy": "steps",
     "remove_unused_columns": False,
     "max_length": TUNING_TRAINER_ARGS["max_seq_length"],
     "fp16": True,
-    "gradient_accumulation_steps": 2
+    "gradient_accumulation_steps": 8
 }
 PPO_CONFIG = {
     "mini_batch_size": 1,

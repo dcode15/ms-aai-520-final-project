@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     WORKDIR="/usr/llm/src" \
-    TRANSFORMERS_CACHE="/model_cache" \
+    HF_HOME="/model_cache" \
     CUDA_HOME="/usr/local/cuda"
 
 RUN apt-get update && apt-get install -y \
