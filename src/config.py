@@ -41,11 +41,15 @@ TUNING_TRAINER_ARGS = {
 
 # Inference parameters
 USE_BASE_MODEL = False
-INFERENCE_MAX_LENGTH = 64
+INFERENCE_MAX_LENGTH = 48
 INFERENCE_PARAMS = {
     "no_repeat_ngram_size": 2,
-    "temperature": 0.7,
-    "do_sample": True
+    "temperature": 0.3,
+    "do_sample": True,
+    "top_k": 20,
+    "top_p": 0.95,
+    "num_beams": 3,
+    "remove_invalid_values": True
 }
 
 # RLHF parameters

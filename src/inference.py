@@ -1,3 +1,6 @@
+import re
+
+import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 import config
@@ -16,7 +19,7 @@ class Chatbot:
         quantization_config = BitsAndBytesConfig(load_in_8bit=True)
         self.model = AutoModelForCausalLM.from_pretrained(
             model_path,
-            torch_dtype="auto",
+            torch_dtype=torch.float16,
             device_map="auto",
             quantization_config=quantization_config,
         )
@@ -57,9 +60,16 @@ class Chatbot:
             output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, output)
         ]
         generated_text = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-        reply = generated_text.split("\n")[0]
+        reply = self._clean_text(generated_text.split("\n")[0])
         self.conversation.append({"role": "assistant", "content": reply})
         return reply
+
+    def _clean_text(self, text: str) -> str:
+        # Remove non-ASCII characters
+        text = re.sub(r'[^\x00-\x7F]+', '', text)
+
+        last_sentence_end = max(text.rfind('.'), text.rfind('!'), text.rfind('?'))
+        return text[:last_sentence_end + 1] if last_sentence_end != -1 else text
 
 
 if __name__ == "__main__":
@@ -67,8 +77,11 @@ if __name__ == "__main__":
     chatbot = Chatbot()
     while True:
         user_input = input("You: ")
-        if user_input.lower() in ['quit', 'exit', 'bye']:
+        if user_input.lower() in ['quit']:
             print("Chatbot: Goodbye! Have a great day!")
             break
-        response = chatbot.generate_response(user_input, max_length=config.INFERENCE_MAX_LENGTH)
-        print("Chatbot:", response)
+        elif user_input.lower() in ['start new conversation']:
+            chatbot.start_conversation()
+        else:
+            response = chatbot.generate_response(user_input, max_length=config.INFERENCE_MAX_LENGTH)
+            print("Chatbot:", response)
