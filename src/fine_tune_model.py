@@ -5,7 +5,9 @@ from trl.trainer import SFTTrainer, SFTConfig
 
 import config
 from preprocessor import Preprocessor
+from utils import set_seeds
 
+set_seeds()
 dataset = Preprocessor.prepare_dataset()
 
 train_test = dataset.train_test_split(test_size=0.2, seed=1)
@@ -19,6 +21,7 @@ model = AutoModelForCausalLM.from_pretrained(
     attn_implementation="flash_attention_2"
 )
 tokenizer = AutoTokenizer.from_pretrained(config.BASE_MODEL_NAME)
+tokenizer.add_special_tokens({"pad_token": "[PAD]"})
 
 model = get_peft_model(model, LoraConfig(**config.TUNING_LORA_ARGS))
 

@@ -14,6 +14,9 @@ x-common-params: &common-params
           - driver: nvidia
             count: all
             capabilities: [ gpu ]
+  environment:
+    - OPENAI_API_KEY=${OPENAI_API_KEY}
+    - HF_TOKEN=${HF_TOKEN}
 
 services:
   fine-tune:
@@ -22,7 +25,10 @@ services:
   inference:
     <<: *common-params
     entrypoint: [ "python", "inference.py" ]
-  train_reward_model:
+  generate-rlaif-data:
+    <<: *common-params
+    entrypoint: [ "python", "generate_rlhf_data.py" ]
+  train-reward-model:
     <<: *common-params
     entrypoint: [ "python", "train_reward_model.py" ]
   rlaif:

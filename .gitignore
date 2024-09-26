@@ -5,3 +5,5 @@ src/trained_chatbot_model
 src/out
 
 *.pyc
+
+.env

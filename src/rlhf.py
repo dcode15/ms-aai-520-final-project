@@ -7,6 +7,7 @@ from transformers import AutoTokenizer, BitsAndBytesConfig, pipeline
 from trl import PPOConfig, PPOTrainer, AutoModelForCausalLMWithValueHead
 
 import config
+from utils import set_seeds
 
 
 def load_rlhf_data() -> Dataset:
@@ -73,6 +74,7 @@ def run_rlhf_training(ppo_trainer, reward_model, tokenizer, epochs=1):
 
 
 def main():
+    set_seeds()
     model, tokenizer = setup_model_and_tokenizer()
     reward_model = setup_reward_model()
 

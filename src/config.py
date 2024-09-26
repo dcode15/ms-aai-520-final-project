@@ -35,7 +35,7 @@ TUNING_TRAINER_ARGS = {
     "per_device_train_batch_size": 1,
     "per_device_eval_batch_size": 1,
     "load_best_model_at_end": True,
-    "eval_strategy": "steps",
+    "eval_strategy": "epoch",
     "dataset_text_field": "text",
     "packing": True,
     "max_seq_length": 512,
@@ -76,15 +76,15 @@ REWARD_MODEL_LORA_ARGS = {
 }
 REWARD_MODEL_TRAINER_ARGS = {
     "output_dir": REWARD_MODEL_OUTPUT_DIR,
-    "num_train_epochs": 5,
-    "per_device_train_batch_size": 1,
-    "per_device_eval_batch_size": 1,
+    "num_train_epochs": 3,
+    "per_device_train_batch_size": 2,
+    "per_device_eval_batch_size": 2,
     "load_best_model_at_end": True,
-    "eval_strategy": "steps",
+    "eval_strategy": "epoch",
     "remove_unused_columns": False,
     "max_length": TUNING_TRAINER_ARGS["max_seq_length"],
     "fp16": True,
-    "gradient_accumulation_steps": 8
+    "gradient_accumulation_steps": 4
 }
 PPO_CONFIG = {
     "mini_batch_size": 1,

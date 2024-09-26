@@ -7,10 +7,11 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from trl import RewardTrainer, RewardConfig
 
 import config
+from utils import set_seeds
 
 
 def load_rlhf_data() -> Dataset:
-    with open(config.RLHF_DATA_PATH, 'r') as file:
+    with open(config.RLHF_DATA_PATH, 'r', encoding="utf-8") as file:
         rlhf_data = json.load(file)
 
     return Dataset.from_list(rlhf_data)
@@ -38,6 +39,7 @@ def formatting_func(examples, tokenizer):
 
 
 def main():
+    set_seeds()
     rlhf_data = load_rlhf_data()
 
     model = AutoModelForSequenceClassification.from_pretrained(

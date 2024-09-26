@@ -5,10 +5,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 import config
-
-torch.manual_seed(1)
-random.seed(1)
-np.random.seed(1)
+from utils import set_seeds
 
 def load_reward_model():
     model = AutoModelForSequenceClassification.from_pretrained(config.TRAINED_REWARD_MODEL_PATH)
@@ -25,6 +22,7 @@ def get_reward_score(model, tokenizer, prompt, response):
 
 
 def main():
+    set_seeds()
     model, tokenizer = load_reward_model()
 
     examples = [
