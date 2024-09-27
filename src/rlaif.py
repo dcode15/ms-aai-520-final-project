@@ -10,11 +10,11 @@ import config
 from utils import set_seeds
 
 
-def load_rlhf_data() -> Dataset:
-    with open(config.RLHF_DATA_PATH, 'r') as file:
-        rlhf_data = json.load(file)
+def load_rlaif_data() -> Dataset:
+    with open(config.RLAIF_DATA_PATH, 'r') as file:
+        rlaif_data = json.load(file)
 
-    dataset = Dataset.from_list(rlhf_data)
+    dataset = Dataset.from_list(rlaif_data)
     dataset = dataset.rename_column("prompt", "query")
     dataset = dataset.remove_columns(["chosen", "rejected"])
     return dataset
@@ -56,7 +56,7 @@ def setup_ppo_trainer(model, dataset, tokenizer):
     )
 
 
-def run_rlhf_training(ppo_trainer, reward_model, tokenizer, epochs=1):
+def run_rlaif_training(ppo_trainer, reward_model, tokenizer, epochs=1):
     for epoch in tqdm(range(epochs), desc="Training Epochs"):
         for batch in tqdm(ppo_trainer.dataloader, desc="Processing Batches"):
             query_tensors = batch["input_ids"]
@@ -70,7 +70,7 @@ def run_rlhf_training(ppo_trainer, reward_model, tokenizer, epochs=1):
             stats = ppo_trainer.step(query_tensors, response_tensors, rewards)
             ppo_trainer.log_stats(stats, batch, rewards)
 
-    ppo_trainer.save_pretrained(config.TRAINED_RLHF_MODEL_PATH)
+    ppo_trainer.save_pretrained(config.TRAINED_RLAIF_MODEL_PATH)
 
 
 def main():
@@ -78,11 +78,11 @@ def main():
     model, tokenizer = setup_model_and_tokenizer()
     reward_model = setup_reward_model()
 
-    dataset = load_rlhf_data()
+    dataset = load_rlaif_data()
     dataset = dataset.map(lambda sample: tokenize(sample, tokenizer), batched=False)
 
     ppo_trainer = setup_ppo_trainer(model, dataset, tokenizer)
-    run_rlhf_training(ppo_trainer, reward_model, tokenizer)
+    run_rlaif_training(ppo_trainer, reward_model, tokenizer)
 
 
 if __name__ == "__main__":

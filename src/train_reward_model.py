@@ -10,11 +10,11 @@ import config
 from utils import set_seeds
 
 
-def load_rlhf_data() -> Dataset:
-    with open(config.RLHF_DATA_PATH, 'r', encoding="utf-8") as file:
-        rlhf_data = json.load(file)
+def load_rlaif_data() -> Dataset:
+    with open(config.RLAIF_DATA_PATH, 'r', encoding="utf-8") as file:
+        rlaif_data = json.load(file)
 
-    return Dataset.from_list(rlhf_data)
+    return Dataset.from_list(rlaif_data)
 
 
 def formatting_func(examples, tokenizer):
@@ -40,7 +40,7 @@ def formatting_func(examples, tokenizer):
 
 def main():
     set_seeds()
-    rlhf_data = load_rlhf_data()
+    rlaif_data = load_rlaif_data()
 
     model = AutoModelForSequenceClassification.from_pretrained(
         config.BASE_REWARD_MODEL_NAME,
@@ -53,7 +53,7 @@ def main():
     tokenizer.add_special_tokens({"pad_token": "[PAD]"})
     model.config.pad_token_id = tokenizer.pad_token_id
 
-    dataset = rlhf_data.map(lambda examples: formatting_func(examples, tokenizer))
+    dataset = rlaif_data.map(lambda examples: formatting_func(examples, tokenizer))
     dataset = dataset.train_test_split(test_size=0.2, seed=1)
 
     trainer = RewardTrainer(

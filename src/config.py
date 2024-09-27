@@ -6,10 +6,10 @@ DATA_PATH = "../data/"
 PREPROCESSED_DATA_PATH = "./out/preprocessed_dataset"
 MODEL_OUTPUT_DIR = "./out/chatbot_model_output"
 TRAINED_MODEL_PATH = "./trained_chatbot_model"
-RLHF_DATA_PATH = "./out/rlhf_dataset/rlhf_data.json"
+RLAIF_DATA_PATH = "./out/rlaif_dataset/rlaif_data.json"
 REWARD_MODEL_OUTPUT_DIR = "./out/reward_model_output"
 TRAINED_REWARD_MODEL_PATH = "./out/trained_reward_model"
-TRAINED_RLHF_MODEL_PATH = "./out/trained_rlhf_model"
+TRAINED_RLAIF_MODEL_PATH = "./out/trained_rlaif_model"
 
 LOGS_DIR = "./logs"
 
@@ -58,9 +58,9 @@ INFERENCE_PARAMS = {
     "remove_invalid_values": True
 }
 
-# RLHF parameters
+# RLAIF parameters
 BASE_REWARD_MODEL_NAME = "Qwen/Qwen2.5-0.5B"
-RLHF_LLM_CONFIG = {
+RLAIF_LLM_CONFIG = {
     "model": "gpt-4o-mini",
     "temperature": 0,
     "max_retries": 3

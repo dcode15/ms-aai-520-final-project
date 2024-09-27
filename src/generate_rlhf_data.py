@@ -9,15 +9,15 @@ from tqdm import tqdm
 
 import config
 from inference import Chatbot
-from rlhf_queries import queries
+from rlaif_queries import queries
 
 llm_client = instructor.from_openai(OpenAI())
 
 
-def create_rlhf_dataset(num_samples: int = 250) -> list[dict]:
+def create_rlaif_dataset(num_samples: int = 1000) -> list[dict]:
     data = []
     chatbot = Chatbot()
-    for _ in tqdm(range(num_samples), desc="Creating RLHF dataset"):
+    for _ in tqdm(range(num_samples), desc="Creating RLAIF dataset"):
         query = random.choice(queries)
 
         chatbot.start_conversation()
@@ -64,7 +64,7 @@ Response 1: {response1}
 Response 2: {response2}"""
 
     response = llm_client.chat.completions.create(
-        **config.RLHF_LLM_CONFIG,
+        **config.RLAIF_LLM_CONFIG,
         messages=[{"role": "user", "content": prompt}],
         response_model=str
     )
@@ -77,7 +77,7 @@ Response 2: {response2}"""
 
 
 if __name__ == "__main__":
-    rlhf_data = create_rlhf_dataset()
-    Path(config.RLHF_DATA_PATH).parent.mkdir(parents=True, exist_ok=True)
-    with open(config.RLHF_DATA_PATH, 'w', encoding="utf-8") as file:
-        json.dump(rlhf_data, file, ensure_ascii=False, indent=4)
+    rlaif_data = create_rlaif_dataset()
+    Path(config.RLAIF_DATA_PATH).parent.mkdir(parents=True, exist_ok=True)
+    with open(config.RLAIF_DATA_PATH, 'w', encoding="utf-8") as file:
+        json.dump(rlaif_data, file, ensure_ascii=False, indent=4)
