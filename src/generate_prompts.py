@@ -21,7 +21,7 @@ if os.path.exists(prompts_file):
 
     prompts = set(queries)
 
-num_prompts = 5000
+num_prompts = 10000
 batch_size = 100
 batch_counter = 0
 
