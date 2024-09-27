@@ -27,7 +27,7 @@ model = AutoModelForCausalLMWithValueHead.from_pretrained(
     quantization_config=quantization_config,
     attn_implementation="flash_attention_2"
 )
-tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B")
+tokenizer = AutoTokenizer.from_pretrained(config.FINETUNED_MODEL_PATH)
 tokenizer.add_special_tokens({"pad_token": "[PAD]"})
 
 ppo_trainer = PPOTrainer(
@@ -41,6 +41,9 @@ num_records = len(query_data)
 for epoch in tqdm(range(config.RLAIF_EPOCHS), desc="Training Epochs"):
     for index in tqdm(range(0, num_records, config.PPO_CONFIG["batch_size"]), desc="Processing Batches"):
         batch_queries = query_data[index:min(index + config.PPO_CONFIG["batch_size"], num_records)]
+        if len(batch_queries) < config.PPO_CONFIG["batch_size"]:
+            continue
+
         query_tensors = tokenizer.batch_encode_plus(batch_queries, return_tensors="pt", padding=True, truncation=True)[
             'input_ids']
         query_tensors = [tensor for tensor in query_tensors]
