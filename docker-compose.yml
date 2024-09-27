@@ -1,5 +1,3 @@
-version: '3'
-
 x-common-params: &common-params
   build: .
   volumes:
@@ -21,22 +19,22 @@ x-common-params: &common-params
 services:
   fine-tune:
     <<: *common-params
-    entrypoint: ["python", "fine_tune_model.py"]
+    entrypoint: [ "python", "fine_tune_model.py" ]
   inference:
     <<: *common-params
     entrypoint: [ "python", "inference.py" ]
-  generate-rlaif-data:
+  generate-reward-model-data:
     <<: *common-params
-    entrypoint: [ "python", "generate_rlhf_data.py" ]
+    entrypoint: [ "python", "generate_reward_model_data.py" ]
   train-reward-model:
     <<: *common-params
     entrypoint: [ "python", "train_reward_model.py" ]
+  generate-rlaif-data:
+    <<: *common-params
+    entrypoint: [ "python", "generate_rlaif_data.py" ]
   rlaif:
     <<: *common-params
-    entrypoint: [ "python", "rlhf.py" ]
-
-
-
+    entrypoint: [ "python", "rlaif.py" ]
 
 volumes:
   model-cache:

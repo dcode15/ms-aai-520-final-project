@@ -35,4 +35,4 @@ trainer = SFTTrainer(
 
 trainer.train()
 
-trainer.save_model(config.TRAINED_MODEL_PATH)
+trainer.save_model(config.FINETUNED_MODEL_PATH)

@@ -1,89 +1,59 @@
 import json
 
 import torch
-from datasets import Dataset
 from tqdm import tqdm
-from transformers import AutoTokenizer, BitsAndBytesConfig, pipeline
+from transformers import AutoTokenizer, BitsAndBytesConfig
 from trl import PPOConfig, PPOTrainer, AutoModelForCausalLMWithValueHead
 
 import config
 from utils import set_seeds
 
+set_seeds()
 
-def load_rlaif_data() -> Dataset:
-    with open(config.RLAIF_DATA_PATH, 'r') as file:
-        rlaif_data = json.load(file)
+with open(f"{config.RLAIF_DATA_PATH}/query_data.json", "r") as file:
+    query_data = json.load(file)
 
-    dataset = Dataset.from_list(rlaif_data)
-    dataset = dataset.rename_column("prompt", "query")
-    dataset = dataset.remove_columns(["chosen", "rejected"])
-    return dataset
+with open(f"{config.RLAIF_DATA_PATH}/response_data.json", "r") as file:
+    response_data = json.load(file)
 
+with open(f"{config.RLAIF_DATA_PATH}/reward_data.json", "r") as file:
+    reward_data = json.load(file)
 
-def tokenize(sample, tokenizer):
-    sample["input_ids"] = tokenizer.encode(sample["query"])
-    return sample
+quantization_config = BitsAndBytesConfig(load_in_8bit=True)
+model = AutoModelForCausalLMWithValueHead.from_pretrained(
+    config.FINETUNED_MODEL_PATH,
+    torch_dtype=torch.float16,
+    device_map="auto",
+    quantization_config=quantization_config,
+    attn_implementation="flash_attention_2"
+)
+tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B")
+tokenizer.add_special_tokens({"pad_token": "[PAD]"})
 
+ppo_trainer = PPOTrainer(
+    model=model,
+    config=PPOConfig(**config.PPO_CONFIG),
+    tokenizer=tokenizer,
+)
 
-def setup_model_and_tokenizer():
-    quantization_config = BitsAndBytesConfig(load_in_8bit=True)
-    model = AutoModelForCausalLMWithValueHead.from_pretrained(
-        config.TRAINED_MODEL_PATH,
-        torch_dtype=torch.float16,
-        device_map="auto",
-        quantization_config=quantization_config,
-        attn_implementation="flash_attention_2"
-    )
-    tokenizer = AutoTokenizer.from_pretrained(config.BASE_MODEL_NAME)
-    tokenizer.add_special_tokens({"pad_token": "[PAD]"})
-    return model, tokenizer
+epochs = 1
+num_records = len(query_data)
+for epoch in tqdm(range(config.RLAIF_EPOCHS), desc="Training Epochs"):
+    for index in tqdm(range(0, num_records, config.PPO_CONFIG["batch_size"]), desc="Processing Batches"):
+        batch_queries = query_data[index:min(index + config.PPO_CONFIG["batch_size"], num_records)]
+        query_tensors = tokenizer.batch_encode_plus(batch_queries, return_tensors="pt", padding=True, truncation=True)[
+            'input_ids']
+        query_tensors = [tensor for tensor in query_tensors]
 
+        batch_responses = response_data[index:min(index + config.PPO_CONFIG["batch_size"], num_records)]
+        response_tensors = \
+        tokenizer.batch_encode_plus(batch_responses, return_tensors="pt", padding=True, truncation=True)['input_ids']
+        response_tensors = [tensor for tensor in response_tensors]
 
-def setup_reward_model():
-    return pipeline(
-        "text-classification",
-        model=config.TRAINED_REWARD_MODEL_PATH,
-        device=config.DEVICE
-    )
+        batch_rewards = reward_data[index:min(index + config.PPO_CONFIG["batch_size"], num_records)]
+        batch_rewards = [torch.tensor([reward]) for reward in batch_rewards]
 
+        stats = ppo_trainer.step(query_tensors, response_tensors, batch_rewards)
+        ppo_trainer.log_stats(stats, {"query": batch_queries, "response": batch_responses}, batch_rewards)
 
-def setup_ppo_trainer(model, dataset, tokenizer):
-    return PPOTrainer(
-        model=model,
-        config=PPOConfig(**config.PPO_CONFIG),
-        dataset=dataset,
-        tokenizer=tokenizer,
-    )
-
-
-def run_rlaif_training(ppo_trainer, reward_model, tokenizer, epochs=1):
-    for epoch in tqdm(range(epochs), desc="Training Epochs"):
-        for batch in tqdm(ppo_trainer.dataloader, desc="Processing Batches"):
-            query_tensors = batch["input_ids"]
-            response_tensors = ppo_trainer.generate(query_tensors, **config.INFERENCE_PARAMS)
-            batch["response"] = tokenizer.batch_decode(response_tensors, skip_special_tokens=True)
-
-            texts = [q + r for q, r in zip(batch["query"], batch["response"])]
-            pipe_outputs = reward_model(texts)
-            rewards = [torch.tensor(output[1]["score"]) for output in pipe_outputs]
-
-            stats = ppo_trainer.step(query_tensors, response_tensors, rewards)
-            ppo_trainer.log_stats(stats, batch, rewards)
-
-    ppo_trainer.save_pretrained(config.TRAINED_RLAIF_MODEL_PATH)
-
-
-def main():
-    set_seeds()
-    model, tokenizer = setup_model_and_tokenizer()
-    reward_model = setup_reward_model()
-
-    dataset = load_rlaif_data()
-    dataset = dataset.map(lambda sample: tokenize(sample, tokenizer), batched=False)
-
-    ppo_trainer = setup_ppo_trainer(model, dataset, tokenizer)
-    run_rlaif_training(ppo_trainer, reward_model, tokenizer)
-
-
-if __name__ == "__main__":
-    main()
+ppo_trainer.save_pretrained(config.TRAINED_RLAIF_MODEL_PATH)
