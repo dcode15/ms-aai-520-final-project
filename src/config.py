@@ -8,7 +8,7 @@ PREPROCESSED_DATA_PATH = "./out/preprocessed_dataset"
 FINETUNING_OUTPUT_DIR = "./out/chatbot_model_output"
 FINETUNED_MODEL_PATH = "./out/finetuned_chatbot_model"
 
-REWARD_MODEL_DATA_PATH = "./out/reward_model_data/reward_model_data.json"
+REWARD_MODEL_DATA_PATH = "./out/reward_model_data"
 REWARD_MODEL_OUTPUT_DIR = "./out/reward_model_output"
 TRAINED_REWARD_MODEL_PATH = "./out/trained_reward_model"
 
@@ -56,14 +56,14 @@ INFERENCE_PARAMS = {
     "no_repeat_ngram_size": 2,
     "temperature": 0.9,
     "do_sample": True,
-    "top_k": 50,
+    "top_k": 25,
     "top_p": 0.95,
     "num_beams": 3,
     "remove_invalid_values": True
 }
 
 # Reward model parameters
-BASE_REWARD_MODEL_NAME = "Qwen/Qwen2.5-0.5B"
+BASE_REWARD_MODEL_NAME = "Qwen/Qwen2.5-1.5B"
 RLAIF_LLM_CONFIG = {
     "model": "gpt-4o-mini",
     "temperature": 0,
