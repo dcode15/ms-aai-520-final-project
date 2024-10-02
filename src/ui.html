@@ -97,16 +97,16 @@
                         <v-chip
                                 v-for="(message, index) in messages"
                                 :key="index"
-                                :class="['message', message.sender === 'User' ? 'message-user' : 'message-bot']"
-                                :color="message.sender === 'User' ? 'blue-darken-3' : 'grey-darken-3'"
+                                :class="['message', message.role === 'user' ? 'message-user' : 'message-bot']"
+                                :color="message.role === 'user' ? 'blue-darken-3' : 'grey-darken-3'"
                                 variant="outlined"
                         >
                             <template v-slot:prepend>
-                                <v-icon :icon="message.sender === 'User' ? 'mdi-account' : 'mdi-robot'"></v-icon>
+                                <v-icon :icon="message.role === 'user' ? 'mdi-account' : 'mdi-robot'"></v-icon>
                             </template>
                             <span class="px-3 py-2">
                                     <template v-if="message.isLoaded">
-                                        {{ message.text }}
+                                        {{ message.content }}
                                     </template>
                                     <template v-else>
                                         <v-progress-circular color="grey-darken-3" :size="25"
@@ -174,8 +174,8 @@
 
             const sendMessage = () => {
                 if (newMessage.value.trim()) {
-                    messages.value.push({sender: 'User', text: newMessage.value, isLoaded: true});
-                    messages.value.push({sender: 'Bot', text: null, isLoaded: false});
+                    messages.value.push({role: 'user', content: newMessage.value, isLoaded: true});
+                    messages.value.push({role: 'assistant', content: null, isLoaded: false});
 
                     fetch('/chat', {
                         method: 'POST',
@@ -184,13 +184,20 @@
                             'Connection': 'keep-alive',
                             'Authorization': ''
                         },
-                        body: JSON.stringify({message: newMessage.value}),
+                        body: JSON.stringify({
+                            messages: messages.value.slice(0, -1),
+                            config: {
+                                temperature: temperature.value,
+                                top_p: topP.value,
+                                top_k: topK.value
+                            }
+                        }),
                     })
                         .then(response => response.json())
                         .then(data => {
                             console.log(data);
                             messages.value.pop()
-                            messages.value.push({sender: 'Bot', text: data, isLoaded: true});
+                            messages.value.push({role: 'assistant', content: data, isLoaded: true});
                             nextTick(() => {
                                 scrollToBottom();
                             });
@@ -199,8 +206,8 @@
                             console.error('Error:', error);
                             messages.value.pop()
                             messages.value.push({
-                                sender: 'Bot',
-                                text: 'Sorry, there was an error processing your request.',
+                                role: 'assistant',
+                                content: 'Sorry, there was an error processing your request.',
                                 isLoaded: true
                             });
                             nextTick(() => {

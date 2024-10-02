@@ -3,5 +3,6 @@
 !api.py
 !config.py
 !inference.py
+!models.py
 
-!trained_chatbot_model
+!finetuned_chatbot_model

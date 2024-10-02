@@ -1,4 +1,5 @@
 import json
+import os
 import random
 from pathlib import Path
 from typing import Optional
@@ -12,12 +13,29 @@ from inference import Chatbot
 from rlaif_queries import queries
 
 llm_client = instructor.from_openai(OpenAI())
+data_file_path = f"{config.REWARD_MODEL_DATA_PATH}/reward_model_data.json"
 
 
-def create_rlaif_dataset(num_samples: int = 1000) -> list[dict]:
-    data = []
+def load_data():
+    if os.path.exists(data_file_path):
+        with open(data_file_path, 'r', encoding="utf-8") as file:
+            return json.load(file)
+    else:
+        return []
+
+
+def write_data_file(data):
+    with open(data_file_path, 'w', encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
+
+
+def create_reward_model_data(num_samples: int = 1500) -> list[dict]:
+    data = load_data()
     chatbot = Chatbot()
     for _ in tqdm(range(num_samples), desc="Creating RLAIF dataset"):
+        if len(data) % 50 == 0:
+            write_data_file(data)
+
         query = random.choice(queries)
 
         chatbot.start_conversation()
@@ -77,7 +95,6 @@ Response 2: {response2}"""
 
 
 if __name__ == "__main__":
-    rlaif_data = create_rlaif_dataset()
-    Path(config.RLAIF_DATA_PATH).parent.mkdir(parents=True, exist_ok=True)
-    with open(config.RLAIF_DATA_PATH, 'w', encoding="utf-8") as file:
-        json.dump(rlaif_data, file, ensure_ascii=False, indent=4)
+    Path(config.REWARD_MODEL_DATA_PATH).mkdir(parents=True, exist_ok=True)
+    data = create_reward_model_data()
+    write_data_file(data)

@@ -1,7 +1,7 @@
 data
 venv
 environment
-src/trained_chatbot_model
+src/finetuned_chatbot_model
 src/out
 
 *.pyc

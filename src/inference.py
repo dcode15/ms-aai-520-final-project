@@ -29,8 +29,10 @@ class Chatbot:
         self.conversation = []
         self.start_conversation()
 
-    def start_conversation(self):
+    def start_conversation(self, previous_conversation: list[dict] = None):
         self.conversation = [{"role": "system", "content": config.SYSTEM_PROMPT}]
+        if previous_conversation is not None:
+            self.conversation.append(previous_conversation)
 
     def generate_response(self, input_text: str, max_length: int = config.INFERENCE_MAX_LENGTH,
                           config_override: dict = None) -> str:
