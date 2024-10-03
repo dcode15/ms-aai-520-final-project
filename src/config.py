@@ -45,7 +45,7 @@ TUNING_TRAINER_ARGS = {
     "max_seq_length": 512,
     "fp16": True,
     "neftune_noise_alpha": 5,
-    "gradient_accumulation_steps": 8,
+    "gradient_accumulation_steps": 16,
     "optim": "adamw_bnb_8bit"
 }
 
@@ -63,12 +63,13 @@ INFERENCE_PARAMS = {
 }
 
 # Reward model parameters
-BASE_REWARD_MODEL_NAME = "Qwen/Qwen2.5-1.5B"
 RLAIF_LLM_CONFIG = {
     "model": "gpt-4o-mini",
     "temperature": 0,
     "max_retries": 3
 }
+
+BASE_REWARD_MODEL_NAME = "Qwen/Qwen2.5-1.5B"
 REWARD_MODEL_LORA_ARGS = {
     "task_type": TaskType.CAUSAL_LM,
     "r": 8,
@@ -81,14 +82,14 @@ REWARD_MODEL_LORA_ARGS = {
 REWARD_MODEL_TRAINER_ARGS = {
     "output_dir": REWARD_MODEL_OUTPUT_DIR,
     "num_train_epochs": 3,
-    "per_device_train_batch_size": 2,
-    "per_device_eval_batch_size": 2,
+    "per_device_train_batch_size": 1,
+    "per_device_eval_batch_size": 1,
     "load_best_model_at_end": True,
     "eval_strategy": "steps",
     "remove_unused_columns": False,
     "max_length": TUNING_TRAINER_ARGS["max_seq_length"],
     "fp16": True,
-    "gradient_accumulation_steps": 4
+    "gradient_accumulation_steps": 8
 }
 
 # RLAIF parameters

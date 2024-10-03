@@ -3,18 +3,18 @@ import json
 import torch
 from datasets import Dataset
 from peft import LoraConfig
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, BitsAndBytesConfig
 from trl import RewardTrainer, RewardConfig
 
 import config
 from utils import set_seeds
 
 
-def load_rlaif_data() -> Dataset:
-    with open(config.RLAIF_DATA_PATH, 'r', encoding="utf-8") as file:
-        rlaif_data = json.load(file)
+def load_reward_model_data() -> Dataset:
+    with open(f"{config.REWARD_MODEL_DATA_PATH}/reward_model_data.json", 'r', encoding="utf-8") as file:
+        reward_model_data = json.load(file)
 
-    return Dataset.from_list(rlaif_data)
+    return Dataset.from_list(reward_model_data)
 
 
 def formatting_func(examples, tokenizer):
@@ -40,7 +40,7 @@ def formatting_func(examples, tokenizer):
 
 def main():
     set_seeds()
-    rlaif_data = load_rlaif_data()
+    reward_model_data = load_reward_model_data()
 
     model = AutoModelForSequenceClassification.from_pretrained(
         config.BASE_REWARD_MODEL_NAME,
@@ -53,7 +53,7 @@ def main():
     tokenizer.add_special_tokens({"pad_token": "[PAD]"})
     model.config.pad_token_id = tokenizer.pad_token_id
 
-    dataset = rlaif_data.map(lambda examples: formatting_func(examples, tokenizer))
+    dataset = reward_model_data.map(lambda examples: formatting_func(examples, tokenizer))
     dataset = dataset.train_test_split(test_size=0.2, seed=1)
 
     trainer = RewardTrainer(
