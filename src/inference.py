@@ -16,13 +16,18 @@ class Chatbot:
         else:
             model_path = config.FINETUNED_MODEL_PATH
 
-        quantization_config = BitsAndBytesConfig(load_in_8bit=True)
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.float16,
+        )
         self.model = AutoModelForCausalLM.from_pretrained(
             model_path,
             torch_dtype=torch.float16,
             device_map="auto",
             quantization_config=quantization_config,
         )
+        self.model.eval()
+
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         self.tokenizer.add_special_tokens({"pad_token": "[PAD]"})
 
@@ -49,13 +54,14 @@ class Chatbot:
         model_inputs = self.tokenizer([text], return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
 
         params = config_override if config_override is not None else config.INFERENCE_PARAMS
-        output = self.model.generate(
-            model_inputs.input_ids,
-            attention_mask=model_inputs.attention_mask,
-            pad_token_id=self.tokenizer.pad_token_id,
-            max_new_tokens=max_length,
-            **params
-        )
+        with torch.inference_mode():
+            output = self.model.generate(
+                model_inputs.input_ids,
+                attention_mask=model_inputs.attention_mask,
+                pad_token_id=self.tokenizer.pad_token_id,
+                max_new_tokens=max_length,
+                **params
+            )
 
         generated_ids = [
             output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, output)

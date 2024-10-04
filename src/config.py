@@ -71,12 +71,10 @@ RLAIF_LLM_CONFIG = {
 
 BASE_REWARD_MODEL_NAME = "Qwen/Qwen2.5-1.5B"
 REWARD_MODEL_LORA_ARGS = {
-    "task_type": TaskType.CAUSAL_LM,
+    "task_type": TaskType.SEQ_CLS,
     "r": 8,
     "lora_alpha": 32,
-    "lora_dropout": 0.05,
-    "bias": "none",
-    "target_modules": ["q_proj", "v_proj"],
+    "lora_dropout": 0.1,
     "inference_mode": False,
 }
 REWARD_MODEL_TRAINER_ARGS = {
