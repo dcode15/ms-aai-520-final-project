@@ -87,7 +87,8 @@ REWARD_MODEL_TRAINER_ARGS = {
     "remove_unused_columns": False,
     "max_length": TUNING_TRAINER_ARGS["max_seq_length"],
     "fp16": True,
-    "gradient_accumulation_steps": 8
+    "gradient_accumulation_steps": 8,
+    "max_prompt_length": 128,
 }
 
 # RLAIF parameters
