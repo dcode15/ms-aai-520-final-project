@@ -14,10 +14,10 @@ class MoviePromptBatch(BaseModel):
     prompts: List[str] = []
 
 
-prompts_file = "rlaif_queries.py"
+prompts_file = "dpo_queries.py"
 prompts = set()
 if os.path.exists(prompts_file):
-    from rlaif_queries import queries
+    from dpo_queries import queries
 
     prompts = set(queries)
 
@@ -31,7 +31,7 @@ while len(prompts) < num_prompts:
 
     try:
         result = llm_client.chat.completions.create(
-            **config.RLAIF_LLM_CONFIG,
+            **config.DPO_LLM_CONFIG,
             response_model=MoviePromptBatch,
             messages=[
                 {"role": "system",

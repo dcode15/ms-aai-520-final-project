@@ -6,14 +6,11 @@ DATA_PATH = "../data/"
 PREPROCESSED_DATA_PATH = "./out/preprocessed_dataset"
 
 FINETUNING_OUTPUT_DIR = "./out/chatbot_model_output"
-FINETUNED_MODEL_PATH = "./out/finetuned_chatbot_model"
+FINETUNED_MODEL_PATH = "./finetuned_chatbot_model"
 
-REWARD_MODEL_DATA_PATH = "./out/reward_model_data"
-REWARD_MODEL_OUTPUT_DIR = "./out/reward_model_output"
-TRAINED_REWARD_MODEL_PATH = "./out/trained_reward_model"
-
-RLAIF_DATA_PATH = "./out/rlaif_data"
-TRAINED_RLAIF_MODEL_PATH = "./out/trained_rlaif_model"
+DPO_DATA_PATH = "./out/dpo_data"
+DPO_OUTPUT_DIR = "./out/dpo_output"
+TRAINED_DPO_MODEL_PATH = "./out/trained_dpo_model"
 
 LOGS_DIR = "./logs"
 
@@ -62,23 +59,22 @@ INFERENCE_PARAMS = {
     "remove_invalid_values": True
 }
 
-# Reward model parameters
-RLAIF_LLM_CONFIG = {
+# DPO parameters
+DPO_LLM_CONFIG = {
     "model": "gpt-4o-mini",
     "temperature": 0,
     "max_retries": 3
 }
 
-BASE_REWARD_MODEL_NAME = "Qwen/Qwen2.5-1.5B"
-REWARD_MODEL_LORA_ARGS = {
+DPO_LORA_ARGS = {
     "task_type": TaskType.SEQ_CLS,
     "r": 8,
     "lora_alpha": 32,
     "lora_dropout": 0.1,
     "inference_mode": False,
 }
-REWARD_MODEL_TRAINER_ARGS = {
-    "output_dir": REWARD_MODEL_OUTPUT_DIR,
+DPO_TRAINER_ARGS = {
+    "output_dir": DPO_OUTPUT_DIR,
     "num_train_epochs": 3,
     "per_device_train_batch_size": 1,
     "per_device_eval_batch_size": 1,
@@ -88,13 +84,5 @@ REWARD_MODEL_TRAINER_ARGS = {
     "max_length": TUNING_TRAINER_ARGS["max_seq_length"],
     "fp16": True,
     "gradient_accumulation_steps": 8,
-    "max_prompt_length": 128,
-}
-
-# RLAIF parameters
-RLAIF_EPOCHS = 2
-PPO_CONFIG = {
-    "mini_batch_size": 1,
-    "batch_size": 16,
-    "gradient_accumulation_steps": 8
+    "max_prompt_length": 256,
 }

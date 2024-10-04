@@ -23,18 +23,13 @@ services:
   inference:
     <<: *common-params
     entrypoint: [ "python", "inference.py" ]
-  generate-reward-model-data:
+  generate-dpo-data:
     <<: *common-params
-    entrypoint: [ "python", "generate_reward_model_data.py" ]
-  train-reward-model:
+    entrypoint: [ "python", "generate_dpo_data.py" ]
+  dpo:
     <<: *common-params
-    entrypoint: [ "python", "train_reward_model.py" ]
-  generate-rlaif-data:
-    <<: *common-params
-    entrypoint: [ "python", "generate_rlaif_data.py" ]
-  rlaif:
-    <<: *common-params
-    entrypoint: [ "python", "rlaif.py" ]
+    entrypoint: [ "python", "dpo.py" ]
+
 
 volumes:
   model-cache:

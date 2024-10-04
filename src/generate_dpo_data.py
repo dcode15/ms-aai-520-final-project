@@ -9,11 +9,11 @@ from openai import OpenAI
 from tqdm import tqdm
 
 import config
+from dpo_queries import queries
 from inference import Chatbot
-from rlaif_queries import queries
 
 llm_client = instructor.from_openai(OpenAI())
-data_file_path = f"{config.REWARD_MODEL_DATA_PATH}/reward_model_data.json"
+data_file_path = f"{config.DPO_DATA_PATH}/dpo_data.json"
 
 
 def load_data():
@@ -29,10 +29,10 @@ def write_data_file(data):
         json.dump(data, file, ensure_ascii=False, indent=4)
 
 
-def create_reward_model_data(num_samples: int = 1500) -> list[dict]:
+def create_dpo_data(num_samples: int = 1500) -> list[dict]:
     data = load_data()
     chatbot = Chatbot()
-    for _ in tqdm(range(num_samples), desc="Creating RLAIF dataset"):
+    for _ in tqdm(range(num_samples), desc="Creating DPO dataset"):
         if len(data) % 50 == 0:
             write_data_file(data)
 
@@ -82,7 +82,7 @@ Response 1: {response1}
 Response 2: {response2}"""
 
     response = llm_client.chat.completions.create(
-        **config.RLAIF_LLM_CONFIG,
+        **config.DPO_LLM_CONFIG,
         messages=[{"role": "user", "content": prompt}],
         response_model=str
     )
@@ -95,6 +95,6 @@ Response 2: {response2}"""
 
 
 if __name__ == "__main__":
-    Path(config.REWARD_MODEL_DATA_PATH).mkdir(parents=True, exist_ok=True)
-    data = create_reward_model_data()
+    Path(config.DPO_DATA_PATH).mkdir(parents=True, exist_ok=True)
+    data = create_dpo_data()
     write_data_file(data)

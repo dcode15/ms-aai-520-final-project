@@ -6,6 +6,7 @@
       <excludeFolder url="file://$MODULE_DIR$/venv" />
       <excludeFolder url="file://$MODULE_DIR$/src/out" />
       <excludeFolder url="file://$MODULE_DIR$/src/trained_chatbot_model" />
+      <excludeFolder url="file://$MODULE_DIR$/src/finetuned_chatbot_model" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.12 (ms-aai-520-final-project)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
