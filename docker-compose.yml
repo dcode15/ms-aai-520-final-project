@@ -29,6 +29,9 @@ services:
   dpo:
     <<: *common-params
     entrypoint: [ "python", "dpo.py" ]
+  evaluate-model:
+    <<: *common-params
+    entrypoint: ["python", "evaluate_model.py"]
 
 
 volumes:

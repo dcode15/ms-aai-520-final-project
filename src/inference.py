@@ -81,12 +81,9 @@ class Chatbot:
 
 if __name__ == "__main__":
     chatbot = Chatbot()
-    print(f"Chatbot: Hello! I'm your AI assistant. How can I help you today?")
-
     while True:
         user_input = input("You: ")
         if user_input.lower() in ['quit']:
-            print("Chatbot: Goodbye! Have a great day!")
             break
         elif user_input.lower() in ['start new conversation']:
             chatbot.start_conversation()
