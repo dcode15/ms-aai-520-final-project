@@ -9,7 +9,7 @@ from openai import OpenAI
 from tqdm import tqdm
 
 import config
-from dpo_queries import queries
+from dpo_prompts import dpo_prompts
 from inference import Chatbot
 
 llm_client = instructor.from_openai(OpenAI())
@@ -36,7 +36,7 @@ def create_dpo_data(num_samples: int = 1500) -> list[dict]:
         if len(data) % 50 == 0:
             write_data_file(data)
 
-        query = random.choice(queries)
+        query = random.choice(dpo_prompts)
 
         chatbot.start_conversation()
         response1 = chatbot.generate_response(query, max_length=config.INFERENCE_MAX_LENGTH, config_override={

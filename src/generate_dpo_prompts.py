@@ -14,12 +14,12 @@ class MoviePromptBatch(BaseModel):
     prompts: List[str] = []
 
 
-prompts_file = "dpo_queries.py"
+prompts_file = "dpo_prompts.py"
 prompts = set()
 if os.path.exists(prompts_file):
-    from dpo_queries import queries
+    from dpo_prompts import dpo_prompts
 
-    prompts = set(queries)
+    prompts = set(dpo_prompts)
 
 num_prompts = 10000
 batch_size = 100

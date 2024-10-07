@@ -3,7 +3,7 @@ import json
 import torch
 from datasets import Dataset
 from peft import LoraConfig
-from transformers import AutoTokenizer, AutoModelForCausalLM, EarlyStoppingCallback
+from transformers import AutoTokenizer, AutoModelForCausalLM, EarlyStoppingCallback, BitsAndBytesConfig
 from trl import DPOTrainer, DPOConfig
 
 import config
@@ -21,11 +21,16 @@ def main():
     set_seeds()
     dpo_data = load_dpo_data()
 
+    quantization_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.bfloat16
+    )
     model = AutoModelForCausalLM.from_pretrained(
-        config.FINETUNED_MODEL_PATH,
-        torch_dtype=torch.float16,
-        device_map=config.DEVICE,
-        attn_implementation="flash_attention_2",
+        config.BASE_MODEL_NAME,
+        quantization_config=quantization_config,
+        attn_implementation="flash_attention_2"
     )
 
     tokenizer = AutoTokenizer.from_pretrained(config.FINETUNED_MODEL_PATH)

@@ -85,8 +85,8 @@ DPO_LORA_ARGS = {
 DPO_TRAINER_ARGS = {
     "output_dir": DPO_OUTPUT_DIR,
     "num_train_epochs": 10,
-    "per_device_train_batch_size": 1,
-    "per_device_eval_batch_size": 1,
+    "per_device_train_batch_size": 2,
+    "per_device_eval_batch_size": 2,
     "load_best_model_at_end": True,
     "eval_strategy": "steps",
     "eval_steps": 500,

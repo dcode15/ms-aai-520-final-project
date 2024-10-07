@@ -1,4 +1,4 @@
-queries = [
+dpo_prompts = [
     "You call this a safe house? I’ve seen better shelters in a zombie movie.",
     "If you want to play with fire, you better be ready to get burned.",
     "I thought we were in this together!",

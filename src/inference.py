@@ -14,7 +14,7 @@ class Chatbot:
         elif config.USE_BASE_MODEL:
             model_path = config.BASE_MODEL_NAME
         else:
-            model_path = config.FINETUNED_MODEL_PATH
+            model_path = config.TRAINED_DPO_MODEL_PATH
 
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
