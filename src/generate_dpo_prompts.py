@@ -24,6 +24,7 @@ if os.path.exists(prompts_file):
 num_prompts = 10000
 batch_size = 100
 batch_counter = 0
+written_prompts = len(prompts)
 
 while len(prompts) < num_prompts:
     batch_counter += 1
@@ -37,7 +38,13 @@ while len(prompts) < num_prompts:
                 {"role": "system",
                  "content": "You are a screenwriter tasked with creating dialogue prompts for various movie genres."},
                 {"role": "user",
-                 "content": f"Generate {batch_size} pieces of unique, engaging dialogue. Use a variety of styles and genres. Each prompt should feel natural and conversational, as if it's part of a movie script. Prompts can be one or more sentences, and can be questions or statements. Do not repeat prompts."}
+                 "content": f"""
+                 Generate {batch_size} pieces of dialogue using the following criteria: 
+                 1. Use a variety of styles and genres. 
+                 2. Vary lengths from one to three sentences. 
+                 3. Each prompt should feel natural and conversational, as if it's part of a movie script.
+                 4. Focus primarily on 'realistic' lines rather than highly dramatized one. However, do include occasional dramatic lines.
+                 4. Do not repeat prompts."""}
             ]
         )
 
@@ -48,8 +55,11 @@ while len(prompts) < num_prompts:
     except Exception as e:
         print(f"Error generating prompts: {e}")
 
-with open(prompts_file, "w", encoding="utf-8") as f:
-    f.write("queries = [\n")
-    for prompt in list(prompts):
-        f.write(f"    \"{prompt}\",\n")
-    f.write("]\n")
+    if len(prompts) > (written_prompts + 100):
+        with open(prompts_file, "w", encoding="utf-8") as f:
+            f.write("queries = [\n")
+            for prompt in list(prompts):
+                f.write(f"    {prompt},\n")
+            f.write("]\n")
+
+        written_prompts = len(prompts)
