@@ -3,7 +3,7 @@ import json
 import torch
 from datasets import Dataset
 from peft import LoraConfig
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, EarlyStoppingCallback
 from trl import DPOTrainer, DPOConfig
 
 import config
@@ -34,14 +34,17 @@ def main():
 
     dataset = dpo_data.train_test_split(test_size=0.2, seed=1)
 
+    early_stopping_callback = EarlyStoppingCallback(early_stopping_patience=2)
+
     trainer = DPOTrainer(
         model=model,
         args=DPOConfig(**config.DPO_TRAINER_ARGS),
-        beta=0.1,
+        beta=0.7,
         train_dataset=dataset["train"],
         eval_dataset=dataset["test"],
         tokenizer=tokenizer,
         peft_config=LoraConfig(**config.DPO_LORA_ARGS),
+        callbacks=[early_stopping_callback]
     )
 
     trainer.train()
