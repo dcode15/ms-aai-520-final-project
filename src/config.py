@@ -10,7 +10,7 @@ FINETUNED_MODEL_PATH = "./finetuned_chatbot_model"
 
 DPO_DATA_PATH = "./out/dpo_data"
 DPO_OUTPUT_DIR = "./out/dpo_output"
-TRAINED_DPO_MODEL_PATH = "./out/trained_dpo_model"
+TRAINED_DPO_MODEL_PATH = "./trained_dpo_model"
 
 LOGS_DIR = "./logs"
 
@@ -73,6 +73,7 @@ DPO_LLM_CONFIG = {
     "max_retries": 3
 }
 
+DPO_BETA = 0.3
 DPO_LORA_ARGS = {
     "task_type": TaskType.SEQ_CLS,
     "r": 8,

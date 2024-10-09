@@ -22,4 +22,5 @@ class ChatConfig(BaseModel):
 
 class ChatInput(BaseModel):
     messages: list[Message]
+    mode: str = "Fine-tuned w/ DPO"
     config: Optional[ChatConfig] = None

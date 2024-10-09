@@ -2,6 +2,7 @@ data
 venv
 environment
 src/finetuned_chatbot_model
+src/trained_dpo_model
 src/out
 
 *.pyc

@@ -9,3 +9,7 @@ Fine tuning:
 Inference:
 
     docker compose run --rm -i inference
+
+Serving the API:
+
+    beam serve api.py:web_server

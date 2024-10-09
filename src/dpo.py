@@ -44,7 +44,7 @@ def main():
     trainer = DPOTrainer(
         model=model,
         args=DPOConfig(**config.DPO_TRAINER_ARGS),
-        beta=0.7,
+        beta=config.DPO_BETA,
         train_dataset=dataset["train"],
         eval_dataset=dataset["test"],
         tokenizer=tokenizer,

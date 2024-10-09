@@ -19,14 +19,16 @@
             width: 70%;
             display: flex;
             flex-direction: column;
+            margin: auto;
         }
 
         .message {
             margin-bottom: 16px;
-            max-width: 60%;
+            max-width: 75%;
             white-space: normal;
             word-wrap: break-word;
             height: auto !important;
+            position: relative;
         }
 
         .message-user {
@@ -35,6 +37,23 @@
 
         .message-bot {
             align-self: flex-start;
+        }
+
+        .toggle-container {
+            margin-top: 8px;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .mode-button {
+            text-transform: none;
+            min-width: 100px;
+            margin-right: 4px;
+        }
+
+        .mode-button.active {
+            background-color: #1976D2;
+            color: white;
         }
     </style>
 </head>
@@ -85,7 +104,7 @@
                                     label="Temperature"
                                     min="0"
                                     max="2"
-                                    step="0.1"
+                                    step="0.01"
                                     thumb-label="always"
                                     hint="Controls randomness in generation (higher = more random)"
                                     persistent-hint
@@ -105,15 +124,42 @@
                             <template v-slot:prepend>
                                 <v-icon :icon="message.role === 'user' ? 'mdi-account' : 'mdi-robot'"></v-icon>
                             </template>
-                            <span class="px-3 py-2">
-                                    <template v-if="message.isLoaded">
+                            <div class="px-3 py-2">
+                                <template v-if="message.isLoaded">
+                                    <template v-if="message.role == 'user'">
                                         {{ message.content }}
                                     </template>
                                     <template v-else>
-                                        <v-progress-circular color="grey-darken-3" :size="25"
-                                                             indeterminate></v-progress-circular>
+                                        <template v-if="currentMode === 'Base' && index === lastAssistantIndex">
+                                            {{ baseText }}
+                                        </template>
+                                        <template v-else-if="currentMode === 'Fine-tuned' && index === lastAssistantIndex">
+                                            {{ fineTunedText }}
+                                        </template>
+                                        <template v-else>
+                                            {{ message.content }}
+                                        </template>
                                     </template>
-                                </span>
+                                </template>
+                                <template v-else>
+                                    <v-progress-circular color="grey-darken-3" :size="25"
+                                                         indeterminate></v-progress-circular>
+                                </template>
+                                <template
+                                        v-if="message.role === 'assistant' && message.isLoaded && index === lastAssistantIndex">
+                                    <div class="toggle-container">
+                                        <v-btn v-for="mode in modes"
+                                               :key="mode"
+                                               class="mode-button"
+                                               :class="{ active: currentMode === mode }"
+                                               @click="changeMode(index, mode)"
+                                               density="compact"
+                                               text>
+                                            {{ mode }}
+                                        </v-btn>
+                                    </div>
+                                </template>
+                            </div>
                         </v-chip>
                     </transition-group>
                 </v-container>
@@ -148,7 +194,7 @@
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vuetify@3.3.5/dist/vuetify.min.js"></script>
 <script>
-    const {createApp, ref, nextTick} = Vue;
+    const {createApp} = Vue;
     const {createVuetify} = Vuetify;
 
     const vuetify = createVuetify({
@@ -165,76 +211,125 @@
     });
 
     const app = createApp({
-        setup() {
-            const messages = ref([]);
-            const newMessage = ref('');
-            const settingsOpen = ref(false);
-            const temperature = ref(0.3)
-            const topK = ref(20)
-            const topP = ref(0.95)
-
-            const sendMessage = () => {
-                if (newMessage.value.trim()) {
-                    messages.value.push({role: 'user', content: newMessage.value, isLoaded: true});
-                    messages.value.push({role: 'assistant', content: null, isLoaded: false});
-
-                    fetch('/chat', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Connection': 'keep-alive',
-                            'Authorization': ''
-                        },
-                        body: JSON.stringify({
-                            messages: messages.value.slice(0, -1),
-                            config: {
-                                temperature: temperature.value,
-                                top_p: topP.value,
-                                top_k: topK.value
-                            }
-                        }),
-                    })
+        data() {
+            return {
+                messages: [],
+                newMessage: '',
+                settingsOpen: false,
+                errorMessage: 'Sorry, there was an error processing your request.',
+                // Settings
+                temperature: 0.3,
+                topK: 20,
+                topP: 0.95,
+                // Modes
+                modes: ['Fine-tuned w/ DPO', 'Fine-tuned', 'Base'],
+                currentMode: 'Fine-tuned w/ DPO',
+                fineTunedText: null,
+                baseText: null,
+            };
+        },
+        computed: {
+            lastAssistantIndex() {
+                for (let i = this.messages.length - 1; i >= 0; i--) {
+                    if (this.messages[i].role === 'assistant') {
+                        return i;
+                    }
+                }
+                return -1;
+            },
+        },
+        methods: {
+            changeMode(index, mode) {
+                const message = this.messages[index];
+                this.currentMode = mode;
+                if (
+                    (mode === 'Fine-tuned' && this.fineTunedText === null) ||
+                    (mode === 'Base' && this.baseText === null)
+                ) {
+                    message.isLoaded = false;
+                    this.getChatbotResponse()
                         .then(response => response.json())
                         .then(data => {
                             console.log(data);
-                            messages.value.pop()
-                            messages.value.push({role: 'assistant', content: data, isLoaded: true});
-                            nextTick(() => {
-                                scrollToBottom();
+                            if (mode === 'Fine-tuned') {
+                                this.fineTunedText = data;
+                            } else {
+                                this.baseText = data;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            if (mode === 'Fine-tuned') {
+                                this.fineTunedText = this.errorMessage;
+                            } else {
+                                this.baseText = this.errorMessage;
+                            }
+                        })
+                        .finally(() => {
+                            message.isLoaded = true;
+                        });
+                }
+            },
+            sendMessage() {
+                if (this.newMessage.trim()) {
+                    this.messages.push({role: 'user', content: this.newMessage, isLoaded: true});
+                    this.messages.push({role: 'assistant', content: null, isLoaded: false});
+
+                    this.getChatbotResponse()
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data);
+                            this.messages.pop();
+                            this.messages.push({role: 'assistant', content: data, isLoaded: true});
+                            this.$nextTick(() => {
+                                this.scrollToBottom();
                             });
                         })
                         .catch(error => {
                             console.error('Error:', error);
-                            messages.value.pop()
-                            messages.value.push({
+                            this.messages.pop();
+                            this.messages.push({
                                 role: 'assistant',
-                                content: 'Sorry, there was an error processing your request.',
+                                content: this.errorMessage,
                                 isLoaded: true
                             });
-                            nextTick(() => {
-                                scrollToBottom();
+                            this.$nextTick(() => {
+                                this.scrollToBottom();
                             });
+                        })
+                        .finally(() => {
+                            this.baseText = null;
+                            this.fineTunedText = null;
+                            this.currentMode = 'Fine-tuned w/ DPO'
                         });
 
-                    newMessage.value = '';
+                    this.newMessage = '';
                 }
-            };
-
-            const scrollToBottom = () => {
+            },
+            getChatbotResponse() {
+                return fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Connection': 'keep-alive',
+                        'Authorization': ''
+                    },
+                    body: JSON.stringify({
+                        messages: this.messages.slice(0, -1),
+                        mode: this.currentMode,
+                        config: {
+                            temperature: this.temperature,
+                            top_p: this.topP,
+                            top_k: this.topK
+                        }
+                    }),
+                });
+            },
+            scrollToBottom() {
                 const container = document.querySelector('.messages-container');
                 container.scrollTop = container.scrollHeight;
-            };
-
-            return {
-                messages,
-                newMessage,
-                sendMessage,
-                settingsOpen,
-                temperature,
-                topK,
-                topP
-            };
-        },
+            }
+        }
     });
 
     app.use(vuetify).mount('#app');

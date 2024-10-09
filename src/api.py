@@ -6,7 +6,7 @@ from models import ChatInput, Message
 
 
 def init_models():
-    return Chatbot()
+    return Chatbot(config.BASE_MODEL_NAME), Chatbot(config.FINETUNED_MODEL_PATH), Chatbot(config.TRAINED_DPO_MODEL_PATH)
 
 
 @asgi(
@@ -24,10 +24,17 @@ def web_server(context):
 
     app = FastAPI()
 
-    chatbot = context.on_start_value
+    base_chatbot, finetuned_chatbot, dpo_chatbot = context.on_start_value
 
     @app.post("/chat")
     async def generate_text(chat_input: ChatInput):
+        if chat_input.mode == "Base":
+            chatbot = base_chatbot
+        elif chat_input.mode == "Fine-tuned":
+            chatbot = finetuned_chatbot
+        else:
+            chatbot = dpo_chatbot
+
         new_message: Message = chat_input.messages.pop()
         chatbot.start_conversation(list(map(lambda message: dict(message), chat_input.messages)))
         if chat_input.config is not None:
