@@ -28,7 +28,7 @@ def main():
         bnb_4bit_compute_dtype=torch.bfloat16
     )
     model = AutoModelForCausalLM.from_pretrained(
-        config.BASE_MODEL_NAME,
+        config.FINETUNED_MODEL_PATH,
         quantization_config=quantization_config,
         attn_implementation="flash_attention_2"
     )

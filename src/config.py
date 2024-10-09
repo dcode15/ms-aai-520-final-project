@@ -68,7 +68,7 @@ INFERENCE_PARAMS = {
 
 # DPO parameters
 DPO_LLM_CONFIG = {
-    "model": "gpt-4o-mini",
+    "model": "gpt-4o",
     "temperature": 0,
     "max_retries": 3
 }

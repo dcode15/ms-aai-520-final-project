@@ -75,7 +75,7 @@
                         temporary
                 >
                     <v-container>
-                        <v-row class="py-4 px-2">
+                        <v-row class="py-5 px-2">
                             <v-text-field
                                     v-model.number="topK"
                                     label="Top K"
@@ -86,7 +86,7 @@
                                     persistent-hint
                             ></v-text-field>
                         </v-row>
-                        <v-row class="py-4 px-2">
+                        <v-row class="py-5 px-2">
                             <v-slider
                                     v-model="topP"
                                     label="Top P"
@@ -98,7 +98,7 @@
                                     persistent-hint
                             ></v-slider>
                         </v-row>
-                        <v-row class="py-4 px-2">
+                        <v-row class="py-5 px-2">
                             <v-slider
                                     v-model="temperature"
                                     label="Temperature"
@@ -133,7 +133,8 @@
                                         <template v-if="currentMode === 'Base' && index === lastAssistantIndex">
                                             {{ baseText }}
                                         </template>
-                                        <template v-else-if="currentMode === 'Fine-tuned' && index === lastAssistantIndex">
+                                        <template
+                                                v-else-if="currentMode === 'Fine-tuned' && index === lastAssistantIndex">
                                             {{ fineTunedText }}
                                         </template>
                                         <template v-else>
@@ -178,8 +179,11 @@
                                     ></v-text-field>
                                 </v-col>
                                 <v-col cols="auto">
-                                    <v-btn type="submit" color="primary" elevation="0" class="h-100">
+                                    <v-btn type="submit" color="primary" elevation="0" class="h-100 mr-2">
                                         <v-icon icon="mdi-send"></v-icon>
+                                    </v-btn>
+                                    <v-btn variant="outlined" class="h-100" @click="startNewConversation()">
+                                        New Conversation
                                     </v-btn>
                                 </v-col>
                             </v-row>
@@ -328,6 +332,16 @@
             scrollToBottom() {
                 const container = document.querySelector('.messages-container');
                 container.scrollTop = container.scrollHeight;
+            },
+            startNewConversation() {
+                fetch('/new_conversation', {
+                    method: 'POST',
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        this.messages = [];
+                    })
+                    .catch(error => console.error('Error:', error));
             }
         }
     });

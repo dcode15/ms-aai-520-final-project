@@ -26,6 +26,12 @@ def web_server(context):
 
     base_chatbot, finetuned_chatbot, dpo_chatbot = context.on_start_value
 
+    @app.post("/new-conversation")
+    async def new_conversation():
+        base_chatbot.start_conversation()
+        finetuned_chatbot.start_conversation()
+        dpo_chatbot.start_conversation()
+
     @app.post("/chat")
     async def generate_text(chat_input: ChatInput):
         if chat_input.mode == "Base":
