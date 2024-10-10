@@ -2,7 +2,7 @@ import json
 
 import torch
 from datasets import Dataset
-from peft import LoraConfig
+from peft import LoraConfig, PeftModel, get_peft_model
 from transformers import AutoTokenizer, AutoModelForCausalLM, EarlyStoppingCallback, BitsAndBytesConfig
 from trl import DPOTrainer, DPOConfig
 
@@ -37,18 +37,20 @@ def main():
     tokenizer.add_special_tokens({"pad_token": "[PAD]"})
     model.config.pad_token_id = tokenizer.pad_token_id
 
+    sft_model = PeftModel.from_pretrained(model, config.FINETUNED_MODEL_PATH)
+    merged_model = sft_model.merge_and_unload()
+
     dataset = dpo_data.train_test_split(test_size=0.2, seed=1)
 
     early_stopping_callback = EarlyStoppingCallback(early_stopping_patience=2)
 
     trainer = DPOTrainer(
-        model=model,
+        model=get_peft_model(merged_model, LoraConfig(**config.DPO_LORA_ARGS)),
         args=DPOConfig(**config.DPO_TRAINER_ARGS),
         beta=config.DPO_BETA,
         train_dataset=dataset["train"],
         eval_dataset=dataset["test"],
         tokenizer=tokenizer,
-        peft_config=LoraConfig(**config.DPO_LORA_ARGS),
         callbacks=[early_stopping_callback]
     )
 

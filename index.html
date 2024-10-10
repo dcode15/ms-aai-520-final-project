@@ -24,10 +24,9 @@
 
         .message {
             margin-bottom: 16px;
-            max-width: 75%;
+            max-width: 70%;
             white-space: normal;
             word-wrap: break-word;
-            height: fit-content !important;
             position: relative;
         }
 
@@ -40,7 +39,6 @@
         }
 
         .toggle-container {
-            margin-top: 8px;
             display: flex;
             justify-content: flex-start;
         }
@@ -60,138 +58,141 @@
 <body>
 <div id="app">
     <v-app>
+        <v-app-bar color="primary" density="compact">
+            <v-app-bar-title>LLM Chatbot</v-app-bar-title>
+            <v-spacer></v-spacer>
+            <v-app-bar-nav-icon variant="text" icon="mdi-cog"
+                                @click.stop="settingsOpen = !settingsOpen"></v-app-bar-nav-icon>
+        </v-app-bar>
+        <v-navigation-drawer
+                v-model="settingsOpen"
+                location="right"
+                width="500"
+                temporary
+        >
+            <v-container>
+                <v-row class="py-5 px-2">
+                    <v-text-field
+                            v-model.number="topK"
+                            label="Top K"
+                            type="number"
+                            min="1"
+                            step="1"
+                            hint="Number of highest probability vocabulary tokens to keep for top-k-filtering"
+                            persistent-hint
+                    ></v-text-field>
+                </v-row>
+                <v-row class="py-5 px-2">
+                    <v-slider
+                            v-model="topP"
+                            label="Top P"
+                            min="0"
+                            max="1"
+                            step="0.01"
+                            thumb-label="always"
+                            hint="Cumulative probability for top-p-filtering"
+                            persistent-hint
+                    ></v-slider>
+                </v-row>
+                <v-row class="py-5 px-2">
+                    <v-slider
+                            v-model="temperature"
+                            label="Temperature"
+                            min="0.01"
+                            max="2"
+                            step="0.01"
+                            thumb-label="always"
+                            hint="Controls randomness in generation (higher = more random)"
+                            persistent-hint
+                    ></v-slider>
+                </v-row>
+            </v-container>
+        </v-navigation-drawer>
         <v-main class="bg-grey-lighten-4">
-            <v-container fluid class="chat-container pa-0">
-                <v-app-bar color="primary" density="compact">
-                    <v-app-bar-title>LLM Chatbot</v-app-bar-title>
-                    <v-spacer></v-spacer>
-                    <v-app-bar-nav-icon variant="text" icon="mdi-cog"
-                                        @click.stop="settingsOpen = !settingsOpen"></v-app-bar-nav-icon>
-                </v-app-bar>
-                <v-navigation-drawer
-                        v-model="settingsOpen"
-                        location="right"
-                        width="500"
-                        temporary
-                >
-                    <v-container>
-                        <v-row class="py-5 px-2">
-                            <v-text-field
-                                    v-model.number="topK"
-                                    label="Top K"
-                                    type="number"
-                                    min="1"
-                                    step="1"
-                                    hint="Number of highest probability vocabulary tokens to keep for top-k-filtering"
-                                    persistent-hint
-                            ></v-text-field>
-                        </v-row>
-                        <v-row class="py-5 px-2">
-                            <v-slider
-                                    v-model="topP"
-                                    label="Top P"
-                                    min="0"
-                                    max="1"
-                                    step="0.01"
-                                    thumb-label="always"
-                                    hint="Cumulative probability for top-p-filtering"
-                                    persistent-hint
-                            ></v-slider>
-                        </v-row>
-                        <v-row class="py-5 px-2">
-                            <v-slider
-                                    v-model="temperature"
-                                    label="Temperature"
-                                    min="0"
-                                    max="2"
-                                    step="0.01"
-                                    thumb-label="always"
-                                    hint="Controls randomness in generation (higher = more random)"
-                                    persistent-hint
-                            ></v-slider>
-                        </v-row>
-                    </v-container>
-                </v-navigation-drawer>
-                <v-container class="messages-container">
-                    <transition-group name="slide-y-transition">
-                        <v-chip
-                                v-for="(message, index) in messages"
-                                :key="index"
-                                :class="['message', message.role === 'user' ? 'message-user' : 'message-bot']"
-                                :color="message.role === 'user' ? 'blue-darken-3' : 'grey-darken-3'"
-                                variant="outlined"
-                        >
-                            <template v-slot:prepend>
-                                <v-icon :icon="message.role === 'user' ? 'mdi-account' : 'mdi-robot'"></v-icon>
-                            </template>
-                            <div class="px-3 py-2">
-                                <template v-if="message.isLoaded">
-                                    <template v-if="message.role == 'user'">
-                                        {{ message.content }}
-                                    </template>
-                                    <template v-else>
-                                        <template v-if="currentMode === 'Base' && index === lastAssistantIndex">
-                                            {{ baseText }}
-                                        </template>
-                                        <template
-                                                v-else-if="currentMode === 'Fine-tuned' && index === lastAssistantIndex">
-                                            {{ fineTunedText }}
-                                        </template>
-                                        <template v-else>
-                                            {{ message.content }}
-                                        </template>
-                                    </template>
+            <v-container class="messages-container">
+                <transition-group name="slide-y-transition">
+                    <v-card
+                            v-for="(message, index) in messages"
+                            :key="index"
+                            :class="['message', message.role === 'user' ? 'message-user' : 'message-bot']"
+                            :color="message.role === 'user' ? 'blue-darken-3' : 'grey-darken-3'"
+                            variant="outlined"
+                            min-width="40%"
+                            :loading="!message.isLoaded"
+                    >
+                        <v-card-item>
+                            <v-card-title>
+                                <template v-if="message.role === 'user'">
+                                    <v-icon icon="mdi-account"></v-icon>
+                                    <span>User</span>
                                 </template>
                                 <template v-else>
-                                    <v-progress-circular color="grey-darken-3" :size="25"
-                                                         indeterminate></v-progress-circular>
+                                    <v-icon icon="mdi-robot"></v-icon>
+                                    Chatbot
+                                </template>
+                            </v-card-title>
+                        </v-card-item>
+                        <v-card-text v-if="message.isLoaded">
+                            <template v-if="message.role == 'user'">
+                                {{ message.content }}
+                            </template>
+                            <template v-else>
+                                <template v-if="currentMode === 'Base' && index === lastAssistantIndex">
+                                    {{ baseText }}
                                 </template>
                                 <template
-                                        v-if="message.role === 'assistant' && message.isLoaded && index === lastAssistantIndex">
-                                    <div class="toggle-container">
-                                        <v-btn v-for="mode in modes"
-                                               :key="mode"
-                                               class="mode-button"
-                                               :class="{ active: currentMode === mode }"
-                                               @click="changeMode(index, mode)"
-                                               density="compact"
-                                               text>
-                                            {{ mode }}
-                                        </v-btn>
-                                    </div>
+                                        v-else-if="currentMode === 'Fine-tuned' && index === lastAssistantIndex">
+                                    {{ fineTunedText }}
                                 </template>
+                                <template v-else>
+                                    {{ message.content }}
+                                </template>
+                            </template>
+                        </v-card-text>
+                        <v-card-actions
+                                v-if="message.role === 'assistant' && message.isLoaded && index === lastAssistantIndex">
+                            <div class="toggle-container">
+                                <v-btn v-for="mode in modes"
+                                       :key="mode"
+                                       class="mode-button"
+                                       :class="{ active: currentMode === mode }"
+                                       @click="changeMode(index, mode)"
+                                       density="compact"
+                                       text>
+                                    {{ mode }}
+                                </v-btn>
                             </div>
-                        </v-chip>
-                    </transition-group>
-                </v-container>
-                <v-footer app>
-                    <v-container class="w-75">
-                        <v-form @submit.prevent="sendMessage">
-                            <v-row no-gutters>
-                                <v-col>
-                                    <v-text-field
-                                            v-model="newMessage"
-                                            placeholder="Type your message"
-                                            variant="outlined"
-                                            density="comfortable"
-                                            hide-details
-                                            class="mr-2"
-                                    ></v-text-field>
-                                </v-col>
-                                <v-col cols="auto">
-                                    <v-btn type="submit" color="primary" elevation="0" class="h-100 mr-2">
-                                        <v-icon icon="mdi-send"></v-icon>
-                                    </v-btn>
-                                    <v-btn variant="outlined" class="h-100" @click="startNewConversation()">
-                                        New Conversation
-                                    </v-btn>
-                                </v-col>
-                            </v-row>
-                        </v-form>
-                    </v-container>
-                </v-footer>
+                        </v-card-actions>
+                    </v-card>
+                </transition-group>
             </v-container>
         </v-main>
+        <v-footer app>
+            <v-container class="w-75">
+                <v-form @submit.prevent="sendMessage">
+                    <v-row no-gutters>
+                        <v-col>
+                            <v-text-field
+                                    v-model="newMessage"
+                                    placeholder="Type your message"
+                                    variant="outlined"
+                                    density="comfortable"
+                                    hide-details
+                                    class="mr-2"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col cols="auto">
+                            <v-btn type="submit" color="primary" elevation="0" class="h-100 mr-2">
+                                <v-icon icon="mdi-send"></v-icon>
+                            </v-btn>
+                            <v-btn variant="outlined" class="h-100" @click="startNewConversation()">
+                                New Conversation
+                            </v-btn>
+                        </v-col>
+                    </v-row>
+                </v-form>
+            </v-container>
+        </v-footer>
     </v-app>
 </div>
 
@@ -254,7 +255,6 @@
                     this.getChatbotResponse()
                         .then(response => response.json())
                         .then(data => {
-                            console.log(data);
                             if (mode === 'Fine-tuned') {
                                 this.fineTunedText = data;
                             } else {
@@ -282,7 +282,6 @@
                     this.getChatbotResponse()
                         .then(response => response.json())
                         .then(data => {
-                            console.log(data);
                             this.messages.pop();
                             this.messages.push({role: 'assistant', content: data, isLoaded: true});
                             this.$nextTick(() => {
@@ -311,7 +310,7 @@
                 }
             },
             getChatbotResponse() {
-                return fetch('https://app.beam.cloud/asgi/public/87a7dc55-db0f-43ae-8ba8-cf189f5b0930/chat', {
+                return fetch('https://app.beam.cloud/asgi/public/be477ee6-dd98-4ed6-a1c6-81369f9a5859/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
