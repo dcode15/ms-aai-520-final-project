@@ -15,7 +15,7 @@
 
         .messages-container {
             flex-grow: 1;
-            overflow-y: auto;
+            overflow-y: scroll;
             width: 70%;
             display: flex;
             flex-direction: column;
@@ -27,7 +27,7 @@
             max-width: 75%;
             white-space: normal;
             word-wrap: break-word;
-            height: auto !important;
+            height: fit-content !important;
             position: relative;
         }
 
@@ -222,9 +222,9 @@
                 settingsOpen: false,
                 errorMessage: 'Sorry, there was an error processing your request.',
                 // Settings
-                temperature: 0.3,
-                topK: 20,
-                topP: 0.95,
+                temperature: 0.5,
+                topK: 50,
+                topP: 0.9,
                 // Modes
                 modes: ['Fine-tuned w/ DPO', 'Fine-tuned', 'Base'],
                 currentMode: 'Fine-tuned w/ DPO',
@@ -311,15 +311,14 @@
                 }
             },
             getChatbotResponse() {
-                return fetch('/chat', {
+                return fetch('https://app.beam.cloud/asgi/public/45c07039-d73b-4b5f-b516-b6574bc8591e/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Connection': 'keep-alive',
-                        'Authorization': ''
                     },
                     body: JSON.stringify({
-                        messages: this.messages.slice(0, -1),
+                        messages: this.messages.slice(-11, -1),
                         mode: this.currentMode,
                         config: {
                             temperature: this.temperature,
@@ -334,14 +333,7 @@
                 container.scrollTop = container.scrollHeight;
             },
             startNewConversation() {
-                fetch('/new_conversation', {
-                    method: 'POST',
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        this.messages = [];
-                    })
-                    .catch(error => console.error('Error:', error));
+                this.messages = [];
             }
         }
     });

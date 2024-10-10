@@ -54,7 +54,6 @@ TUNING_TRAINER_ARGS = {
 }
 
 # Inference parameters
-USE_BASE_MODEL = False
 INFERENCE_MAX_LENGTH = 48
 INFERENCE_PARAMS = {
     "no_repeat_ngram_size": 2,

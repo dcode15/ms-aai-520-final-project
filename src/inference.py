@@ -11,8 +11,6 @@ class Chatbot:
     def __init__(self, model_override: str = None):
         if model_override is not None:
             model_path = model_override
-        elif config.USE_BASE_MODEL:
-            model_path = config.BASE_MODEL_NAME
         else:
             model_path = config.TRAINED_DPO_MODEL_PATH
 

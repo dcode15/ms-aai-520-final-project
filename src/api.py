@@ -17,7 +17,7 @@ def init_models():
     ),
     on_start=init_models,
     authorized=False,
-    gpu="RTX4090"
+    gpu="T4"
 )
 def web_server(context):
     from fastapi import FastAPI
@@ -25,12 +25,6 @@ def web_server(context):
     app = FastAPI()
 
     base_chatbot, finetuned_chatbot, dpo_chatbot = context.on_start_value
-
-    @app.post("/new-conversation")
-    async def new_conversation():
-        base_chatbot.start_conversation()
-        finetuned_chatbot.start_conversation()
-        dpo_chatbot.start_conversation()
 
     @app.post("/chat")
     async def generate_text(chat_input: ChatInput):
