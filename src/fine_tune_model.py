@@ -1,5 +1,5 @@
 import torch
-from peft import LoraConfig, get_peft_model
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, EarlyStoppingCallback
 from trl.trainer import SFTTrainer, SFTConfig
 
@@ -9,8 +9,6 @@ from utils import set_seeds
 
 set_seeds()
 dataset = Preprocessor.prepare_dataset()
-
-train_test = dataset.train_test_split(test_size=0.2, seed=1)
 
 quantization_config = BitsAndBytesConfig(
     load_in_4bit=True,
@@ -26,6 +24,7 @@ model = AutoModelForCausalLM.from_pretrained(
 tokenizer = AutoTokenizer.from_pretrained(config.BASE_MODEL_NAME)
 tokenizer.add_special_tokens({"pad_token": "[PAD]"})
 
+model = prepare_model_for_kbit_training(model)
 model = get_peft_model(model, LoraConfig(**config.TUNING_LORA_ARGS))
 
 early_stopping_callback = EarlyStoppingCallback(early_stopping_patience=2)
@@ -34,8 +33,8 @@ trainer = SFTTrainer(
     model=model,
     tokenizer=tokenizer,
     args=SFTConfig(**config.TUNING_TRAINER_ARGS),
-    train_dataset=train_test['train'],
-    eval_dataset=train_test['test'],
+    train_dataset=dataset['train'],
+    eval_dataset=dataset['validation'],
     callbacks=[early_stopping_callback]
 )
 

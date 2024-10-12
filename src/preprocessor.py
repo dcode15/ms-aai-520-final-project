@@ -1,6 +1,6 @@
 import os
 
-from datasets import Dataset, load_from_disk
+from datasets import Dataset, load_from_disk, DatasetDict
 
 import config
 
@@ -55,8 +55,16 @@ class Preprocessor:
                                        conversations]
             dataset = Dataset.from_dict({"text": formatted_conversations})
 
+            train_val_test = dataset.train_test_split(test_size=0.2, seed=1)
+            train_val = train_val_test['train'].train_test_split(test_size=0.2, seed=1)
+
+            dataset = DatasetDict({
+                'train': train_val['train'],
+                'validation': train_val['test'],
+                'test': train_val_test['test']
+            })
+
             print(f"Saving preprocessed dataset to {config.PREPROCESSED_DATA_PATH}")
             dataset.save_to_disk(config.PREPROCESSED_DATA_PATH)
 
-        subset_size = int(len(dataset) * config.TUNING_DATA_SUBSET_PROPORTION)
-        return dataset.select(range(subset_size))
+        return dataset

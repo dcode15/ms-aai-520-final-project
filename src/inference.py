@@ -1,6 +1,7 @@
 import re
 
 import torch
+from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 import config
@@ -8,32 +9,32 @@ import config
 
 class Chatbot:
 
-    def __init__(self, model_override: str = None):
-        if model_override is not None:
-            model_path = model_override
-        else:
-            model_path = config.TRAINED_DPO_MODEL_PATH
+    def __init__(self, model_path: str = None):
+        if model_path is None:
+            model_path = config.FINETUNED_MODEL_PATH
 
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_compute_dtype=torch.float16,
         )
         self.model = AutoModelForCausalLM.from_pretrained(
-            model_path,
+            config.BASE_MODEL_NAME,
             torch_dtype=torch.float16,
             device_map="auto",
             quantization_config=quantization_config,
         )
-        self.model.eval()
-
-        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(config.BASE_MODEL_NAME)
         self.tokenizer.add_special_tokens({"pad_token": "[PAD]"})
 
+        if not model_path == config.BASE_MODEL_NAME:
+            self.model = PeftModel.from_pretrained(self.model, model_path)
+
+        self.model.eval()
         self.conversation = []
         self.start_conversation()
 
     def start_conversation(self, previous_conversation: list[dict] = None):
-        self.conversation = [{"role": "system", "content": config.SYSTEM_PROMPT}]
+        self.conversation = []
         if previous_conversation is not None:
             self.conversation.append(previous_conversation)
 
