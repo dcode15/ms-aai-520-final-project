@@ -1,0 +1,126 @@
+\documentclass[stu,donotrepeattitle,floatsintext]{apa7}
+
+\usepackage[american]{babel}
+\usepackage{graphicx}
+\usepackage{titlesec}
+\usepackage{pdfpages}
+\usepackage[style=apa,backend=biber]{biblatex}
+\usepackage[options]{nohyperref}
+\usepackage{url}
+\usepackage{appendix}
+
+\DeclareLanguageMapping{american}{american-apa}
+\addbibresource{main.bib}
+
+\titleformat{\section}
+{\normalfont\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}
+{\normalfont\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+{\normalfont\bfseries}{\thesubsubsection}{1em}{}
+
+\newcommand{\q}[1]{``#1''}
+\newcommand{\customsection}[2]{
+  \phantomsection
+  \section*{#1}\label{#2}
+  \addcontentsline{toc}{section}{#1}
+}
+\newcommand{\customsubsection}[2]{
+  \phantomsection
+  \subsection*{#1}\label{#2}
+  \addcontentsline{toc}{subsection}{#1}
+}
+\newcommand{\customsubsubsection}[2]{
+  \phantomsection
+  \subsubsection*{#1}\label{#2}
+  \addcontentsline{toc}{subsubsection}{#1}
+}
+
+\title{Developing a Memory-Efficient Dialogue Chatbot}
+
+\authorsnames{Douglas Code}
+\authorsaffiliations{University of San Diego}
+\course{AAI-520: Natural Language Processing and Generative AI}
+\professor{Andrew Van Benschoten, Ph.D}
+\duedate{Octboer 21, 2024}
+
+\begin{document}
+    \maketitle
+
+    \tableofcontents
+    \newpage
+
+
+    \customsection{Introduction}{introduction}
+
+    \customsection{Model Architecture}{architecture}
+
+    \customsubsection{Model Choice}{model_choice}
+
+    \customsubsection{Preprocessing}{preprocesssing}
+
+    \customsubsection{Fine-Tuning}{fine_tuning}
+
+    \customsubsection{Direct Preference Optimization}{dpo}
+
+    \customsection{Challenges and Solutions}{challenges}
+
+    \customsubsection{GPU Optimization}{gpu_optimization}
+
+    \customsubsubsection{QLoRA}{qlora}
+
+    \customsubsubsection{Mixed Precision Training}{mixed_precision}
+
+    \customsubsubsection{Flash Attention}{flash_attention}
+
+    \customsubsubsection{Packing}{packing}
+
+    \customsubsubsection{8-bit Optimizer}{8bit_optimizer}
+
+    \customsubsubsection{Gradient Accumulation}{gradient_accumulation}
+
+    \customsubsubsection{Inference Sequence Length}{inference_length}
+
+    \customsubsection{RLAIF}{rlaif}
+
+    \customsubsection{Web Interface}{web_interface}
+
+    \customsubsubsection{API}{api}
+
+    \customsubsubsection{UI}{UI}
+
+    \customsection{Evaluation}{evaluation}
+
+    \customsubsection{Automated Metrics}{automated_metrics}
+
+    \customsubsection{Human Evaluation}{human_evaluation}
+
+    \customsection{Future Improvements and Scalability}{future_improvements}
+
+    \customsubsection{Model Improvements}{model_improvements}
+
+    \customsubsubsection{Larger Base Models}{larger_base_models}
+
+    \customsubsubsection{Expanded and Genre-Specific Datasets}{expanded_datasets}
+
+    \customsubsubsection{Human Tuning}{human_tuning}
+
+    \customsubsubsection{Hyperparameter Tuning}{hyperparameter_tuning}
+
+    \customsubsubsection{Safety Tuning}{safety_tuning}
+
+    \customsubsection{Scalability}
+
+    \customsubsubsection{Model Distillation}{model_distillation}
+
+    \customsubsubsection{Cloud Architecture}{cloud_architecture}
+
+    \printbibliography
+
+    \begin{appendices}
+        \section{}\label{sec:}
+
+
+    \end{appendices}
+
+\end{document}
