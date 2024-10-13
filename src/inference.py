@@ -56,17 +56,14 @@ class Chatbot:
             add_generation_prompt=True,
             add_special_tokens=True,
         )
-        model_inputs = self.tokenizer([text], return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
+        model_inputs = self.tokenizer([text], return_tensors="pt").to(config.DEVICE)
 
         params = config_override if config_override is not None else config.INFERENCE_PARAMS
-        with torch.inference_mode():
-            output = self.model.generate(
-                model_inputs.input_ids,
-                attention_mask=model_inputs.attention_mask,
-                pad_token_id=self.tokenizer.pad_token_id,
-                max_new_tokens=max_length,
-                **params
-            )
+        output = self.model.generate(
+            **model_inputs,
+            max_new_tokens=max_length,
+            **params
+        )
 
         generated_ids = [
             output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, output)
