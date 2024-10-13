@@ -34,9 +34,7 @@ class Chatbot:
         self.start_conversation()
 
     def start_conversation(self, previous_conversation: list[dict] = None):
-        self.conversation = []
-        if previous_conversation is not None:
-            self.conversation.append(previous_conversation)
+        self.conversation = previous_conversation if previous_conversation is not None else []
 
     def generate_response(self, input_text: str, max_length: int = config.INFERENCE_MAX_LENGTH,
                           config_override: dict = None) -> str:
