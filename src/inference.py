@@ -12,6 +12,7 @@ class Chatbot:
     def __init__(self, model_path: str = None):
         if model_path is None:
             model_path = config.TRAINED_DPO_MODEL_PATH
+        self.model_path = model_path
 
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
@@ -34,7 +35,14 @@ class Chatbot:
         self.start_conversation()
 
     def start_conversation(self, previous_conversation: list[dict] = None):
-        self.conversation = previous_conversation if previous_conversation is not None else []
+        new_conversation = []
+
+        if self.model_path == config.BASE_MODEL_NAME:
+            new_conversation.append({"role": "system", "content": config.SYSTEM_PROMPT})
+        if previous_conversation is not None:
+            new_conversation += previous_conversation
+
+        self.conversation = new_conversation
 
     def generate_response(self, input_text: str, max_length: int = config.INFERENCE_MAX_LENGTH,
                           config_override: dict = None) -> str:
