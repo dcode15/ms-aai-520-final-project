@@ -51,7 +51,7 @@ TUNING_TRAINER_ARGS = {
 }
 
 # Inference parameters
-INFERENCE_MAX_LENGTH = 48
+INFERENCE_MAX_LENGTH = 64
 INFERENCE_PARAMS = {
     "no_repeat_ngram_size": 2,
     "temperature": 0.9,

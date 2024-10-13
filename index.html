@@ -223,9 +223,9 @@
                 settingsOpen: false,
                 errorMessage: 'Sorry, there was an error processing your request.',
                 // Settings
-                temperature: 0.5,
-                topK: 50,
-                topP: 0.9,
+                temperature: 0.9,
+                topK: 25,
+                topP: 0.95,
                 // Modes
                 modes: ['Fine-tuned w/ DPO', 'Fine-tuned', 'Base'],
                 currentMode: 'Fine-tuned w/ DPO',
@@ -310,7 +310,7 @@
                 }
             },
             getChatbotResponse() {
-                return fetch('https://app.beam.cloud/asgi/public/c47786c1-ecc8-40e1-b3bb-fe4e2fc1d2a1/chat', {
+                return fetch('https://app.beam.cloud/asgi/public/06559388-f5b7-4205-adcc-a505c2924656/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
