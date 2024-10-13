@@ -17,7 +17,6 @@ LOGS_DIR = "./logs"
 # Model configuration
 BASE_MODEL_NAME = "Qwen/Qwen2.5-3B"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-SYSTEM_PROMPT = "You are a dialogue partner in a movie. Respond naturally and conversationally."
 
 # Training parameters
 TUNING_DATA_SUBSET_PROPORTION = 1

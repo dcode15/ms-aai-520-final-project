@@ -30,9 +30,9 @@ def main():
     model = AutoModelForCausalLM.from_pretrained(
         config.BASE_MODEL_NAME,
         quantization_config=quantization_config,
-        attn_implementation="flash_attention_2"
+        attn_implementation="flash_attention_2",
     )
-    model = PeftModel.from_pretrained(model, config.FINETUNED_MODEL_PATH)
+    model = PeftModel.from_pretrained(model, config.FINETUNED_MODEL_PATH, is_trainable=True)
 
     tokenizer = AutoTokenizer.from_pretrained(config.FINETUNED_MODEL_PATH)
     tokenizer.add_special_tokens({"pad_token": "[PAD]"})

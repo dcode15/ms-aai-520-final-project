@@ -11,7 +11,7 @@ class Chatbot:
 
     def __init__(self, model_path: str = None):
         if model_path is None:
-            model_path = config.FINETUNED_MODEL_PATH
+            model_path = config.TRAINED_DPO_MODEL_PATH
 
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
