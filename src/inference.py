@@ -56,7 +56,7 @@ class Chatbot:
             add_generation_prompt=True,
             add_special_tokens=True,
         )
-        model_inputs = self.tokenizer([text], return_tensors="pt").to(config.DEVICE)
+        model_inputs = self.tokenizer([text], return_tensors="pt", truncation=True).to(config.DEVICE)
 
         params = config_override if config_override is not None else config.INFERENCE_PARAMS
         output = self.model.generate(
