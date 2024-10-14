@@ -5,6 +5,10 @@ src/finetuned_chatbot_model
 src/trained_dpo_model
 src/out
 
+final-paper/*
+!final-paper/main.tex
+!final-paper/main.bib
+
 *.pyc
 
 .env
