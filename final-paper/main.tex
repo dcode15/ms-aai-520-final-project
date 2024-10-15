@@ -53,11 +53,29 @@
 
     \customsection{Introduction}{introduction}
 
+    The goal of this project was to fine-tune a small, pretrained large language model (LLM) to generate realistic and compelling movie dialogue when prompted with a preceding line.
+    To achieve this, the Qwen 2.5 3B base model was fine-tuned using the Cornell Movie-Dialog Corpus, a curated dataset of movie dialogue.
+
+    The project consisted of multiple stages, including model selection, data preprocessing, fine-tuning, and Direct Preference Optimization (DPO).
+    A web UI and API were then developed to make the model easily accessible.
+    The resulting model achieved significant improvement over the base model in dialogue generation, with human testers preferring output from the fine-tuned and DPO versions of the model 89\% of the time when compared with the base model.
+
     \customsection{Model Architecture}{architecture}
 
     \customsubsection{Model Choice}{model_choice}
 
-    We used Qwen 2.5 3B~\parencite{qwen2.5}.
+    For this project, the Qwen 2.5 3B base model was selected as the base model.
+    This model was released in September 2024 and is part of the broader Qwen series of models developed by the Alibaba Group~\parencite{qwen_2.5}.
+
+    A number of factors contributed to the selection of this model.
+    One of the largest constraints in developing the dialogue model was in the amount of GPU compute and VRAM available.
+    All model training was done on a single NVIDIA RTX 3060ti with 8 gigabytes of VRAM.
+    This greatly limited the size of model that could be used, making the Qwen series appealing due to its inclusion of 0.5 billion, 1.5 billion, and 3 billion parameter models.
+    This allowed early work to be done on the small 0.5B model, then as efficiency improvements were made in the training process the model could be retrained using the 1.5B and finally 3B base models.
+
+    Additionally, the small models in the Qwen 2.5 series represent the current state of the art in small open-source pretrained models, currently ranking first in the Hugging Face Open LLM Leaderboards in terms of average score across all metrics~\parencite{huggingface_leaderboard}.
+    In initial testing in comparison to other options like Meta's Llama 3.2 and Google's Gemma models, the Qwen 2.5 models particularly excelled in both creativity and the lower strength of their content safeguards.
+    While weaker safeguards would be a liability in many situations, the nature of movie dialogue generation requires the in-grained \q{assistant} role to be overridden, and also introduces a need to handle some content that might be refused by most prominent pretrained base models.
 
     \customsubsection{Preprocessing}{preprocesssing}
 
@@ -117,8 +135,6 @@
 
     \customsubsubsection{Cloud Architecture}{cloud_architecture}
 
-
-    \nocite{*}
     \printbibliography
 
     \begin{appendices}
