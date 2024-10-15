@@ -62,7 +62,7 @@
 
     \customsection{Model Architecture}{architecture}
 
-    \customsubsection{Model Choice}{model_choice}
+    \customsubsection{Model Selection}{model_selection}
 
     For this project, the Qwen 2.5 3B base model was selected as the base model.
     This model was released in September 2024 and is part of the broader Qwen series of models developed by the Alibaba Group~\parencite{qwen_2.5}.
@@ -79,6 +79,22 @@
 
     \customsubsection{Preprocessing}{preprocesssing}
 
+    Preprocessing the data for use in fine-tuning involved cross-referencing the movie lines data and movie conversations data to create ordered lists of lines representing full conversations.
+    These conversations were then split into prompt-response pairs using a sliding window, where the first and second lines would form the first pair, and the second and third lines would form the second pair, etc.
+    Finally, the paired lines were formatted using the Qwen models' special tokens to match the formatting expected by the model:
+
+    \begin{verbatim}
+        <|im_start|>user
+        [Prompt line]<|im_end|>
+        <|im_start|>assistant
+        [Response line]<|im_end|><|endoftext|>
+    \end{verbatim}
+
+    Formatted sequences were then truncated at a max length of 512 tokens, which was chosen to balance preserving context with remaining compuatationally efficient on the available hardware.
+    To more efficiently use GPU resources during fine-tuning, packing was used.
+    Packing involves concatenating short sequences together into a single training example to more fully fill the maximum sequence length.
+    This prevents the situation where a long sequence of padding tokens need to be processed, wasting GPU resources~\parencite{packing}.
+
     \customsubsection{Fine-Tuning}{fine_tuning}
 
     \customsubsection{Direct Preference Optimization}{dpo}
@@ -92,8 +108,6 @@
     \customsubsubsection{Mixed Precision Training}{mixed_precision}
 
     \customsubsubsection{Flash Attention}{flash_attention}
-
-    \customsubsubsection{Packing}{packing}
 
     \customsubsubsection{8-bit Optimizer}{8bit_optimizer}
 
