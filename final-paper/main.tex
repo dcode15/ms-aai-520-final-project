@@ -179,23 +179,48 @@
 
     \customsection{Future Improvements and Scalability}{future_improvements}
 
+    Given additional time and resources, there are a number of improvements that could be made to both the model itself and its ability to scale.
+
     \customsubsection{Model Improvements}{model_improvements}
 
     \customsubsubsection{Larger Base Models}{larger_base_models}
 
+    With more GPU resources, larger base models could be used.
+    While the capabilities of the small Qwen 2.5 models are impressive for their size, there is still a very noticeable difference in output quality when compared to larger models.
+    Performing a similar training process on the 7B, 14B, 32B, or 72B models would be one of the simplest ways to make large improvements to the quality of the model.
+
     \customsubsubsection{Expanded and Genre-Specific Datasets}{expanded_datasets}
+
+    Both the vocabulary and style of dialogue changes significantly over time and between genres.
+    With the Cornell Movie Dialog corpus being six years old now, the model could be improved by incorporating additional data from more recent movies.
+    Tuning on datasets representing different genres could also give the model better a better ability to handle more diverse prompt topics.
 
     \customsubsubsection{Human Tuning}{human_tuning}
 
+    In this project, preference data was generated using a more sophisticated large language model.
+    While this is much more cost and time effective than collecting human preference data, it also aligned the model with the limitations and biases trained of the GPT-4o model, which isn't necessarily identical to human preference.
+    Performing tuning based on actual human feedback could give a better alignment with human preference.
+
     \customsubsubsection{Hyperparameter Tuning}{hyperparameter_tuning}
 
-    \customsubsubsection{Safety Tuning}{safety_tuning}
+    Even with the GPU optimizations described previously, training a new iteration of the model took around two days end-to-end.
+    This made it infeasible to perform hyperparameter tuning beyond manually tweaking a few key parameters like DPO's beta parameter.
+    With more GPU resources and the ability to tune multiple models at once across a distributed cluster, more thorough hyperparameter tuning could be done, which would likely result in significant improvements to model quality.
 
-    \customsubsection{Scalability}
+    \customsubsubsection{Model Safety}{model_safety}
 
-    \customsubsubsection{Model Distillation}{model_distillation}
+    The fine-tuning process largely eliminated the content safeguards of the base model.
+    While this is desirable for this task in many situations, as movies often deal with sensitive topics, further research into what the tuned model will and won't do would give a better idea of potential issues.
+    The reintroduction of some safeguards would also present the opportunity to create multiple versions of the model with different levels of restriction.
+    This could make it more accessible to a wider range of users, like children.
 
-    \customsubsubsection{Cloud Architecture}{cloud_architecture}
+    \customsubsubsection{Scaling}{scaling}
+
+    Currently, the model is served using a \q{serverless} architecture that scales down to zero running instances when not in use.
+    To achieve better response times while still maintaining some level of automated scaling, a persistent server or cluster could be run to accommodate baseline traffic with additional auto-scaling or serverless compute to handle spikes in traffic.
+    In a future iteration of the chatbot that includes features like API access or user-driven system prompts that can lead to regularly repeated sequence prefixes, prompt caching could be used to save heavily re-used transformer block calculations to decrease computational needs.
+    Model pruning could also potentially be used to remove model weights that contribute little to the model's performance.
+    This would decrease the model size, allowing for faster inference and less RAM usage.
 
     \printbibliography
 
