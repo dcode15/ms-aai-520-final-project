@@ -151,17 +151,31 @@
 
     \customsection{Web Interface}{web_interface}
 
-    \customsubsection{API}{api}
-
-    \customsubsection{UI}{UI}
+    To facilitate easy interaction with the model, a chatbot-style web interface was created.
+    The web interface uses a containerized FastAPI API which performs inference when provided with a prompt.
+    The API is consumed by a Vue-based web UI that allows the user to send messages, start new conversations, and modify key inference parameters like Temperature, Top K filtering, and Top P filtering.
 
     \customsubsection{Inference Sequence Length}{inference_length}
+
+    The unique nature of the dialogue generation task presented an opportunity for improving inference speed through limiting the maximum number of tokens generated.
+    Aside from monologues, it is rare for any single \q{turn} in a conversation to last for more than a few sentences.
+    This meant that the length of generated sequences could be greatly reduced without noticeably impacting the quality of the model.
+    For the web interface, chatbot responses are limited to a maximum of 64 tokens, which greatly reduces API times.
 
     \customsection{Evaluation}{evaluation}
 
     \customsubsection{Automated Metrics}{automated_metrics}
 
     \customsubsection{Human Evaluation}{human_evaluation}
+
+    This model's creative nature made automated evaluation metrics less useful than for more common LLM tasks like summarization or machine translation.
+    To get a more comprehensive picture of the final model's performance, human evaluation was performed as well.
+    This was done by giving two individuals 100 prompts from the test dataset along with responses from the base Qwen 2.5 model, fine-tuned model, and fine-tuned model with DPO.
+    The individuals then chose the response they thought was most coherent and interesting in the context of movie dialogue.
+    To better evaluate the Qwen 2.5 base model's ability to perform the task, it was given the system prompt: \q{Respond to all prompts with realistic and natural dialogue lines}.
+
+    Human evaluation showed strong preference for the tuned models, with the final model being chosen 52\% of the time, the fine-tuned-only model being chosen 37\% of the time, and the base model being chosen 11\% of the time.
+    Subjectively, evaluators noted that the fine-tuned model sometimes showed more creativity in creating interesting responses than the final model that had undergone DPO, but the DPO model was more consistently coherent and less likely to create repetitive, rambling answers.
 
     \customsection{Future Improvements and Scalability}{future_improvements}
 
