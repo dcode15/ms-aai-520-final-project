@@ -54,15 +54,13 @@
     \customsection{Introduction}{introduction}
 
     The goal of this project was to fine-tune a small, pretrained large language model (LLM) to generate realistic and compelling movie dialogue when prompted with a preceding line.
-    To achieve this, the Qwen 2.5 3B base model was fine-tuned using the Cornell Movie-Dialog Corpus, a curated dataset of movie dialogue.
+    To achieve this, the Qwen 2.5 3B base model was fine-tuned using the Cornell Movie-Dialog Corpus, a curated dataset of movie dialogue~\parencite{cornell_movie_data}.
 
     The project consisted of multiple stages, including model selection, data preprocessing, fine-tuning, and Direct Preference Optimization (DPO).
     A web UI and API were then developed to make the model easily accessible.
     The resulting model achieved significant improvement over the base model in dialogue generation, with human testers preferring output from the fine-tuned and DPO versions of the model 89\% of the time when compared with the base model.
 
-    \customsection{Model Architecture}{architecture}
-
-    \customsubsection{Model Selection}{model_selection}
+    \customsection{Model Selection}{model_selection}
 
     For this project, the Qwen 2.5 3B base model was selected as the base model.
     This model was released in September 2024 and is part of the broader Qwen series of models developed by the Alibaba Group~\parencite{qwen_2.5}.
@@ -77,51 +75,73 @@
     In initial testing in comparison to other options like Meta's Llama 3.2 and Google's Gemma models, the Qwen 2.5 models particularly excelled in both creativity and the lower strength of their content safeguards.
     While weaker safeguards would be a liability in many situations, the nature of movie dialogue generation requires the in-grained \q{assistant} role to be overridden, and also introduces a need to handle some content that might be refused by most prominent pretrained base models.
 
-    \customsubsection{Preprocessing}{preprocesssing}
+    \customsection{Preprocessing}{preprocesssing}
 
     Preprocessing the data for use in fine-tuning involved cross-referencing the movie lines data and movie conversations data to create ordered lists of lines representing full conversations.
     These conversations were then split into prompt-response pairs using a sliding window, where the first and second lines would form the first pair, and the second and third lines would form the second pair, etc.
     Finally, the paired lines were formatted using the Qwen models' special tokens to match the formatting expected by the model:
-
     \begin{verbatim}
         <|im_start|>user
-        [Prompt line]<|im_end|>
+        [Prompt text]<|im_end|>
         <|im_start|>assistant
-        [Response line]<|im_end|><|endoftext|>
+        [Response text]<|im_end|><|endoftext|>
     \end{verbatim}
-
     Formatted sequences were then truncated at a max length of 512 tokens, which was chosen to balance preserving context with remaining compuatationally efficient on the available hardware.
     To more efficiently use GPU resources during fine-tuning, packing was used.
     Packing involves concatenating short sequences together into a single training example to more fully fill the maximum sequence length.
     This prevents the situation where a long sequence of padding tokens need to be processed, wasting GPU resources~\parencite{packing}.
 
-    \customsubsection{Fine-Tuning}{fine_tuning}
+    The preprocessed data was split into training and test datasets using an 80/20 split, and 20\% of the training dataset was held out validation.
 
-    \customsubsection{Direct Preference Optimization}{dpo}
+    \customsection{Fine-Tuning}{fine_tuning}
 
-    \customsection{Challenges and Solutions}{challenges}
+    The largest challenge in fine-tuning the model was in the limited computational resources that were available.
+    In particular, the 8GB of VRAM presented an issue for loading models for training.
+    This combined with the short timeline available for training created a balancing act in trying to use the largest, most powerful model possible while also keeping all values on the GPU during training.
+    To address this, a number of optimizations were made to reduce the amount of VRAM and compute needed during fine-tuning.
+    In combination with each other, these techniques allowed the 500 million parameter Qwen 2.5 model to be increased to the 3 billion parameter model while also significantly reducing training time.
+    While some of the techniques used can result in decreased model quality, testing showed that the effect of being able to increase the model size significantly outweighed any degradation in model performance.
 
-    \customsubsection{GPU Optimization}{gpu_optimization}
+    \customsubsection{Quantization}{quantization}
 
-    \customsubsubsection{QLoRA}{qlora}
+    Quantization involves converting a model's parameters to lower-precision formats, reducing the amount of memory and compute needed.
+    4-bit quantization was used in this case, converting the 32-bit floating point parameters into 4-bit normal floating point format.
+    For intermediate calculations, 16-bit brain floating point format was used.
 
-    \customsubsubsection{Mixed Precision Training}{mixed_precision}
+    \customsubsection{QLoRA}{qlora}
 
-    \customsubsubsection{Flash Attention}{flash_attention}
+    Low-Rank Adaptation (LoRA) is a technique where model weights are frozen during training and small rank decomposition matrices are added to the model's layers.
+    These matrices are then updated during fine-tuning rather than the model weights, allowing larger models to be fine-tuned with relatively few trainable parameters.
+    The decreased number of parameters both speeds up training and decreases amount of memory used.
+    The use of 4-bit quantization allowed for the use of Quantized Low-Rank Adaptation (QLoRA).
+    QLoRA quantizes the base model to 4 bits and trains the LoRA adapters in 16-bit precision.
+    Then during inference, quantized model weights are dequantized as needed and combined with LoRA updates to get a final result~\parencite{qlora}.
 
-    \customsubsubsection{8-bit Optimizer}{8bit_optimizer}
+    \customsubsection{Flash Attention}{flash_attention}
+    Flash Attention is an algorithm for efficiently performing attention computations in transformer models.
+    It works by optimizing the usage of shared random-access memory (SRAM) as opposed to much slower high-bandwidth memory (HBM), resulting in faster computations and decreased memory usage.
+    An updated version of the Flash Attention algorithm, Flash Attention 2, was used for this project~\parencite{flash_attention}.
 
-    \customsubsubsection{Gradient Accumulation}{gradient_accumulation}
+    \customsubsection{Gradient Accumulation}{gradient_accumulation}
+    Gradient accumulation is a technique where gradients are summed over multiple mini-batches, and then parameters are only updated after a set number of mini-batches rather than after every batch.
+    This can allow the use of larger simulated batch sizes than are otherwise possible due to memory limitations~\parencite{gradient_accumulation}.
+    During fine-tuning, batch sizes of 1 were used with gradient accumulation to achieve simulated batch sizes of 16 sequences.
 
-    \customsubsubsection{Inference Sequence Length}{inference_length}
+    \customsubsection{NEFTune}{neftune}
 
-    \customsubsection{RLAIF}{rlaif}
+    Noise-Enhanced Fine-Tuning (NEFTune) adds small amounts of Gaussian noise to the input embeddings.
+    The addition of noise acts as a form of regularization, similar to how noise might be added to training images in image recognition tasks.
+    This can prevent overfitting and improve model generalization~\parencite{neftune}.
 
-    \customsubsection{Web Interface}{web_interface}
+    \customsection{Direct Preference Optimization}{dpo}
 
-    \customsubsubsection{API}{api}
+    \customsection{Web Interface}{web_interface}
 
-    \customsubsubsection{UI}{UI}
+    \customsubsection{API}{api}
+
+    \customsubsection{UI}{UI}
+
+    \customsubsection{Inference Sequence Length}{inference_length}
 
     \customsection{Evaluation}{evaluation}
 
