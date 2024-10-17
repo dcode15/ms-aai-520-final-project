@@ -11,13 +11,8 @@
 
 \DeclareLanguageMapping{american}{american-apa}
 \addbibresource{main.bib}
+\linespread{1.5}
 
-\titleformat{\section}
-{\normalfont\bfseries}{\thesection}{1em}{}
-\titleformat{\subsection}
-{\normalfont\bfseries}{\thesubsection}{1em}{}
-\titleformat{\subsubsection}
-{\normalfont\bfseries}{\thesubsubsection}{1em}{}
 
 \newcommand{\q}[1]{``#1''}
 \newcommand{\customsection}[2]{
@@ -36,7 +31,7 @@
   \addcontentsline{toc}{subsubsection}{#1}
 }
 
-\title{Developing a Memory-Efficient Dialogue Chatbot}
+\title{Building a Memory-Efficient Dialogue Chatbot}
 
 \authorsnames{Douglas Code}
 \authorsaffiliations{University of San Diego}
@@ -56,42 +51,31 @@
     The goal of this project was to fine-tune a small, pretrained large language model (LLM) to generate realistic and compelling movie dialogue when prompted with a preceding line.
     To achieve this, the Qwen 2.5 3B base model was fine-tuned using the Cornell Movie-Dialog Corpus, a curated dataset of movie dialogue~\parencite{cornell_movie_data}.
 
-    The project consisted of multiple stages, including model selection, data preprocessing, fine-tuning, and Direct Preference Optimization (DPO).
-    A web UI and API were then developed to make the model easily accessible.
-    The resulting model achieved significant improvement over the base model in dialogue generation, with human testers preferring output from the fine-tuned and DPO versions of the model 89\% of the time when compared with the base model.
-
     \customsection{Model Selection}{model_selection}
 
     For this project, the Qwen 2.5 3B base model was selected as the base model.
     This model was released in September 2024 and is part of the broader Qwen series of models developed by the Alibaba Group~\parencite{qwen_2.5}.
 
-    A number of factors contributed to the selection of this model.
-    One of the largest constraints in developing the dialogue model was in the amount of GPU compute and VRAM available.
-    All model training was done on a single NVIDIA RTX 3060ti with 8 gigabytes of VRAM.
+    One of the largest constraints in developing the dialogue model was in the amount of GPU compute and VRAM available, as all model training was done on a single NVIDIA RTX 3060ti with 8 gigabytes of VRAM.
     This greatly limited the size of model that could be used, making the Qwen series appealing due to its inclusion of 0.5 billion, 1.5 billion, and 3 billion parameter models.
     This allowed early work to be done on the small 0.5B model, then as efficiency improvements were made in the training process the model could be retrained using the 1.5B and finally 3B base models.
 
-    Additionally, the small models in the Qwen 2.5 series represent the current state of the art in small open-source pretrained models, currently ranking first in the Hugging Face Open LLM Leaderboards in terms of average score across all metrics~\parencite{huggingface_leaderboard}.
+    Additionally, the small models in the Qwen 2.5 series represent the current state of the art in small open-source pretrained base models, currently ranking first in the Hugging Face Open LLM Leaderboards in terms of average score across all metrics~\parencite{huggingface_leaderboard}.
     In initial testing in comparison to other options like Meta's Llama 3.2 and Google's Gemma models, the Qwen 2.5 models particularly excelled in both creativity and the lower strength of their content safeguards.
     While weaker safeguards would be a liability in many situations, the nature of movie dialogue generation requires the in-grained \q{assistant} role to be overridden, and also introduces a need to handle some content that might be refused by most prominent pretrained base models.
 
     \customsection{Preprocessing}{preprocesssing}
 
     Preprocessing the data for use in fine-tuning involved cross-referencing the movie lines data and movie conversations data to create ordered lists of lines representing full conversations.
-    These conversations were then split into prompt-response pairs using a sliding window, where the first and second lines would form the first pair, and the second and third lines would form the second pair, etc.
-    Finally, the paired lines were formatted using the Qwen models' special tokens to match the formatting expected by the model:
-    \begin{verbatim}
-        <|im_start|>user
-        [Prompt text]<|im_end|>
-        <|im_start|>assistant
-        [Response text]<|im_end|><|endoftext|>
-    \end{verbatim}
-    Formatted sequences were then truncated at a max length of 512 tokens, which was chosen to balance preserving context with remaining compuatationally efficient on the available hardware.
+    These conversations were then split into prompt-response pairs using a sliding window, where the first and second lines would form the first pair, the second and third lines would form the second pair, etc.
+    Finally, the paired lines were formatted using the Qwen models' special tokens to match the formatting expected by the model.
+
+    Formatted sequences were truncated at a max length of 512 tokens, which was chosen to balance preserving context with remaining computationally efficient on the available hardware.
     To more efficiently use GPU resources during fine-tuning, packing was used.
     Packing involves concatenating short sequences together into a single training example to more fully fill the maximum sequence length.
     This prevents the situation where a long sequence of padding tokens need to be processed, wasting GPU resources~\parencite{packing}.
 
-    The preprocessed data was split into training and test datasets using an 80/20 split, and 20\% of the training dataset was held out validation.
+    The preprocessed data was split into training and test datasets using an 80/20 split, and 20\% of the training dataset was held out for validation.
 
     \customsection{Fine-Tuning}{fine_tuning}
 
@@ -110,12 +94,8 @@
 
     \customsubsection{QLoRA}{qlora}
 
-    Low-Rank Adaptation (LoRA) is a technique where model weights are frozen during training and small rank decomposition matrices are added to the model's layers.
-    These matrices are then updated during fine-tuning rather than the model weights, allowing larger models to be fine-tuned with relatively few trainable parameters.
-    The decreased number of parameters both speeds up training and decreases amount of memory used.
-    The use of 4-bit quantization allowed for the use of Quantized Low-Rank Adaptation (QLoRA).
-    QLoRA quantizes the base model to 4 bits and trains the LoRA adapters in 16-bit precision.
-    Then during inference, quantized model weights are dequantized as needed and combined with LoRA updates to get a final result~\parencite{qlora}.
+    Low-Rank Adaptation (LoRA), or Quantized Low-Rank Adaptation (QLoRA) when using 4-bit quantization, is a technique where model weights are frozen during training and small rank decomposition matrices are added to the model's layers.
+    These matrices are then updated during fine-tuning rather than the model weights, allowing larger models to be fine-tuned with relatively few trainable parameters~\parencite{qlora}.
 
     \customsubsection{Flash Attention}{flash_attention}
     Flash Attention is an algorithm for efficiently performing attention computations in transformer models.
@@ -123,29 +103,29 @@
     An updated version of the Flash Attention algorithm, Flash Attention 2, was used for this project~\parencite{flash_attention}.
 
     \customsubsection{Gradient Accumulation}{gradient_accumulation}
-    Gradient accumulation is a technique where gradients are summed over multiple mini-batches, and then parameters are only updated after a set number of mini-batches rather than after every batch.
+    Gradient accumulation is a technique where gradients are summed over multiple mini-batches, and parameters are only updated after a set number of mini-batches rather than after every batch.
     This can allow the use of larger simulated batch sizes than are otherwise possible due to memory limitations~\parencite{gradient_accumulation}.
     During fine-tuning, batch sizes of 1 were used with gradient accumulation to achieve simulated batch sizes of 16 sequences.
 
     \customsubsection{NEFTune}{neftune}
 
     Noise-Enhanced Fine-Tuning (NEFTune) adds small amounts of Gaussian noise to the input embeddings.
-    The addition of noise acts as a form of regularization, similar to how noise might be added to training images in image recognition tasks.
+    The addition of this noise acts as a form of regularization, similar to how noise might be added to training images in image recognition tasks.
     This can prevent overfitting and improve model generalization~\parencite{neftune}.
 
     \customsection{Direct Preference Optimization}{dpo}
 
     After the base model was fine-tuned using the movie dialogue, reinforcement learning from AI feedback (RLAIF) was performed to further fine-tune the model.
     RLAIF was chosen over RLHF due to RLHF not being feasible given the time and resource constraints of the project.
-    To achieve this, 10,000 example dialogue prompts were generated using the GPT-4o model through the OpenAI API .
+    To achieve this, 10,000 example dialogue prompts were generated using the GPT-4o model through the OpenAI API.
     For each of these dialogue prompts, two competing responses were then generated by the fine-tuned model.
     Each prompt and its response options were then fed back into the GPT-4o model, which was prompted to \q{select the response that is most coherent and works best as dialogue from a movie}.
 
     Once 10,000 preference examples had been created, a reward model was trained on the preference model using the Qwen 2.5 0.5B model as a base.
     The reward model was then used for Proximal Policy Optimization (PPO).
-    However, the multiple steps of training the reward model made it very time-consuming to make updates to the model, and the process was very sensitive to the quality of the reward model.
+    However, the multiple steps of training the reward model made it very time-consuming to make updates to the model, and the process was sensitive to the quality of the reward model.
 
-    To address this the approach of using RLAIF with PPO was abandoned and Direct Preference Optimization (DPO) was used instead.
+    To address this, the approach of using RLAIF with PPO was altered to use Direct Preference Optimization (DPO) instead.
     DPO allows language models to be tuned on preference data directly without creating a reward model~\parencite{dpo}.
     This allowed the final model to be trained much more efficiently by training the fine-tuned model on the existing preference data without any intermediate steps.
 
@@ -157,10 +137,9 @@
 
     \customsubsection{Inference Sequence Length}{inference_length}
 
-    The unique nature of the dialogue generation task presented an opportunity for improving inference speed through limiting the maximum number of tokens generated.
-    Aside from monologues, it is rare for any single \q{turn} in a conversation to last for more than a few sentences.
-    This meant that the length of generated sequences could be greatly reduced without noticeably impacting the quality of the model.
-    For the web interface, chatbot responses are limited to a maximum of 64 tokens, which greatly reduces API times.
+    Aside from monologues, it is rare for any single turn in a conversation to last for more than a few sentences.
+    This meant that the length of generated sequences could be greatly reduced to a maximum of 64 tokens without noticeably impacting the usefulness of the chatbot.
+    Limiting the generated sequence length in this way significantly improved chatbot response times.
 
     \customsection{Evaluation}{evaluation}
 
@@ -181,43 +160,31 @@
 
     Given additional time and resources, there are a number of improvements that could be made to both the model itself and its ability to scale.
 
-    \customsubsection{Model Improvements}{model_improvements}
+    \customsubsection{More Data, More Paramaters}
 
-    \customsubsubsection{Larger Base Models}{larger_base_models}
-
-    With more GPU resources, larger base models could be used.
-    While the capabilities of the small Qwen 2.5 models are impressive for their size, there is still a very noticeable difference in output quality when compared to larger models.
-    Performing a similar training process on the 7B, 14B, 32B, or 72B models would be one of the simplest ways to make large improvements to the quality of the model.
-
-    \customsubsubsection{Expanded and Genre-Specific Datasets}{expanded_datasets}
-
-    Both the vocabulary and style of dialogue changes significantly over time and between genres.
     With the Cornell Movie Dialog corpus being six years old now, the model could be improved by incorporating additional data from more recent movies.
     Tuning on datasets representing different genres could also give the model better a better ability to handle more diverse prompt topics.
 
-    \customsubsubsection{Human Tuning}{human_tuning}
+    With more GPU resources, using larger base models would be one of the simplest ways to make large improvements to the quality of the model.
+    While the capabilities of the small Qwen 2.5 models are impressive for their size, there is still a very noticeable difference in output quality when compared to larger models.
+
+    \customsubsection{Human Tuning}{human_tuning}
 
     In this project, preference data was generated using a more sophisticated large language model.
     While this is much more cost and time effective than collecting human preference data, it also aligned the model with the limitations and biases trained of the GPT-4o model, which isn't necessarily identical to human preference.
     Performing tuning based on actual human feedback could give a better alignment with human preference.
 
-    \customsubsubsection{Hyperparameter Tuning}{hyperparameter_tuning}
+    \customsubsection{Hyperparameter Tuning}{hyperparameter_tuning}
 
     Even with the GPU optimizations described previously, training a new iteration of the model took around two days end-to-end.
     This made it infeasible to perform hyperparameter tuning beyond manually tweaking a few key parameters like DPO's beta parameter.
     With more GPU resources and the ability to tune multiple models at once across a distributed cluster, more thorough hyperparameter tuning could be done, which would likely result in significant improvements to model quality.
 
-    \customsubsubsection{Model Safety}{model_safety}
-
-    The fine-tuning process largely eliminated the content safeguards of the base model.
-    While this is desirable for this task in many situations, as movies often deal with sensitive topics, further research into what the tuned model will and won't do would give a better idea of potential issues.
-    The reintroduction of some safeguards would also present the opportunity to create multiple versions of the model with different levels of restriction.
-    This could make it more accessible to a wider range of users, like children.
-
-    \customsubsubsection{Scaling}{scaling}
+    \customsubsection{Scaling}{scaling}
 
     Currently, the model is served using a \q{serverless} architecture that scales down to zero running instances when not in use.
     To achieve better response times while still maintaining some level of automated scaling, a persistent server or cluster could be run to accommodate baseline traffic with additional auto-scaling or serverless compute to handle spikes in traffic.
+
     In a future iteration of the chatbot that includes features like API access or user-driven system prompts that can lead to regularly repeated sequence prefixes, prompt caching could be used to save heavily re-used transformer block calculations to decrease computational needs.
     Model pruning could also potentially be used to remove model weights that contribute little to the model's performance.
     This would decrease the model size, allowing for faster inference and less RAM usage.
