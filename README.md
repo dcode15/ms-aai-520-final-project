@@ -31,7 +31,7 @@ Serving the API (from the `src` folder):
 
     beam serve api.py:web_server
 
-# Deploying the App
+## Deploying the App
 
 To deploy the app to beam.cloud (from the `src` folder):
 
