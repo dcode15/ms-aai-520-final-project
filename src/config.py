@@ -11,8 +11,7 @@ FINETUNED_MODEL_PATH = "./finetuned_chatbot_model"
 DPO_DATA_PATH = "./out/dpo_data"
 DPO_OUTPUT_DIR = "./out/dpo_output"
 TRAINED_DPO_MODEL_PATH = "./trained_dpo_model"
-
-LOGS_DIR = "./logs"
+G_EVAL_DIR = "./out/g_eval"
 
 # Model configuration
 BASE_MODEL_NAME = "Qwen/Qwen2.5-3B"

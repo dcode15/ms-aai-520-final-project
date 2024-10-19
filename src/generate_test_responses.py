@@ -20,8 +20,8 @@ def evaluate_model():
 
     chatbot = Chatbot(config.FINETUNED_MODEL_PATH)
 
-    os.makedirs(config.LOGS_DIR, exist_ok=True)
-    output_file = os.path.join(config.LOGS_DIR, "model_evaluation_results_ft.json")
+    os.makedirs(config.G_EVAL_DIR, exist_ok=True)
+    output_file = os.path.join(config.G_EVAL_DIR, "model_evaluation_results_ft.json")
 
     results = []
     if os.path.exists(output_file):

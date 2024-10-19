@@ -105,7 +105,7 @@ def prepare_batch_file(data, criteria_type):
         }
         batch_requests.append(json.dumps(request))
 
-    batch_file_path = f"{config.LOGS_DIR}/batch_input_{criteria_type}.jsonl"
+    batch_file_path = f"{config.G_EVAL_DIR}/batch_input_{criteria_type}.jsonl"
     with open(batch_file_path, 'w') as f:
         for request in batch_requests:
             f.write(request + '\n')
@@ -148,7 +148,7 @@ def wait_for_batches(batch_jobs):
 
 
 def load_existing_results(model):
-    output_file = f"{config.LOGS_DIR}/model_evaluation_results_{model}_scored.json"
+    output_file = f"{config.G_EVAL_DIR}/model_evaluation_results_{model}_scored.json"
     if os.path.exists(output_file):
         with open(output_file, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -192,9 +192,9 @@ def process_batch_results(all_data, batch_jobs, existing_results):
 
 # Load data
 data_files = {
-    'dpo': f"{config.LOGS_DIR}/model_evaluation_results.json",
-    'ft': f"{config.LOGS_DIR}/model_evaluation_results_ft.json",
-    'base': f"{config.LOGS_DIR}/model_evaluation_results_base.json"
+    'dpo': f"{config.G_EVAL_DIR}/model_evaluation_results.json",
+    'ft': f"{config.G_EVAL_DIR}/model_evaluation_results_ft.json",
+    'base': f"{config.G_EVAL_DIR}/model_evaluation_results_base.json"
 }
 
 all_data = {}
@@ -214,7 +214,7 @@ print("Processing batch results...")
 updated_results = process_batch_results(all_data, batch_jobs, existing_results)
 
 for model, data in updated_results.items():
-    output_file = f"{config.LOGS_DIR}/model_evaluation_results_{model}_scored.json"
+    output_file = f"{config.G_EVAL_DIR}/model_evaluation_results_{model}_scored.json"
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 

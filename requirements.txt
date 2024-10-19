@@ -11,3 +11,4 @@ bitsandbytes==0.43.3
 anthropic==0.36.2
 scikit-learn==1.5.2
 seaborn==0.13.2
+jupyter==1.1.1
