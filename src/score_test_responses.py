@@ -1,6 +1,7 @@
 import json
 import os
 import time
+from typing import Dict, List, Any
 
 from openai import OpenAI
 
@@ -8,69 +9,19 @@ import config
 
 client = OpenAI()
 criteria = ["coherence", "consistency", "fluency", "relevance"]
-prompts = {
-    "coherence": """
-        You will be given a line of movie dialogue and an AI-generated response. Your task is to rate the AI's response on coherence.
-        
-        Evaluation Criteria:
-        Coherence (1-5) - The degree to which the AI's response logically connects to the given dialogue line and maintains a plausible flow of conversation within a movie context. A score of 1 indicates a completely incoherent response that doesn't fit the scene at all, while a score of 5 indicates a perfectly coherent response that naturally continues the dialogue in a way that could believably appear in a movie script.
-        
-        Evaluation Steps:
-        1. Read the given movie dialogue line carefully, considering its potential context, tone, and implied setting.
-        2. Read the AI's response and assess how well it follows from the given line in a cinematic context.
-        3. Consider whether the response maintains the implied tone, setting, and character dynamics of the original line.
-        4. Evaluate how well the response could continue or advance a potential movie scene.
-        5. Assess whether the response introduces any abrupt or illogical shifts that would be jarring in a film dialogue.
-        6. Assign a score from 1 to 5 based on the overall coherence of the AI's response in the context of movie dialogue.
-    """,
-    "consistency": """
-        You will be given a line of movie dialogue and an AI-generated response. Your task is to rate the AI's response on consistency.
-
-        Evaluation Criteria:
-        Consistency (1-5) - The degree to which the AI's response maintains consistent information, tone, and character voice with the given dialogue line. A score of 1 indicates highly inconsistent responses with clear contradictions or tonal mismatches, while a score of 5 indicates perfectly consistent responses that maintain the established context and character voice.
-        
-        Evaluation Steps:
-        1. Carefully read the given movie dialogue line, noting any implied information about the character, setting, or situation.
-        2. Read the AI's response and check if it's consistent with the information, tone, and character voice implied by the original line.
-        3. Look for any contradictions in facts, emotions, or character traits between the original line and the response.
-        4. Assess whether the response maintains a consistent level of formality, emotion, or genre-appropriate language.
-        5. Check if the response's tone and style are consistent with what one would expect in a movie dialogue continuation.
-        6. Assign a score from 1 to 5 based on the overall consistency of the AI's response with the given movie dialogue line.
-    """,
-    "fluency": """
-        You will be given a line of movie dialogue and an AI-generated response. Your task is to rate the AI's response on fluency.
-
-        Evaluation Criteria:
-        Fluency (1-5) - The quality of the AI's language in terms of grammar, vocabulary, and natural flow, specifically in the context of movie dialogue. A score of 1 indicates poor fluency with many errors and unnatural language that would be jarring in a film, while a score of 5 indicates perfect fluency that sounds natural and believable as movie dialogue.
-        
-        Evaluation Steps:
-        1. Read the AI's response carefully, focusing on the language quality in the context of movie dialogue.
-        2. Check for any grammatical errors, including issues with verb tenses, subject-verb agreement, and sentence structure.
-        3. Assess the vocabulary use, looking for appropriate word choice and variety that fits well in a movie script.
-        4. Evaluate the natural flow of language, checking if it sounds like realistic spoken dialogue.
-        5. Look for any awkward phrasings or unnatural expressions that would sound out of place in a film.
-        6. Consider the appropriate use of idioms, colloquialisms, or character-specific language that enhances the dialogue's authenticity.
-        7. Assign a score from 1 to 5 based on the overall fluency of the AI's response as movie dialogue.
-    """,
-    "relevance": """
-        You will be given a line of movie dialogue and an AI-generated response. Your task is to rate the AI's response on relevance.
-
-        Evaluation Criteria:
-        Relevance (1-5) - The degree to which the AI's response appropriately addresses or follows up on the given dialogue line in a way that makes sense for a movie scene. A score of 1 indicates a completely irrelevant response that doesn't fit the context of the dialogue at all, while a score of 5 indicates a highly relevant response that perfectly continues or responds to the given line in a cinematically appropriate way.
-        
-        Evaluation Steps:
-        1. Carefully read the given movie dialogue line, identifying the main points, emotions, or subtext it conveys.
-        2. Assess how directly the AI's response addresses or builds upon the given line in a way that makes sense for a movie scene.
-        3. Check if the response acknowledges all important aspects of the original line, or if it misses any crucial points.
-        4. Evaluate whether the response contributes to advancing a potential scene or character development in a relevant way.
-        5. Assess if the response stays on topic or if it introduces irrelevant information that doesn't fit the implied movie context.
-        6. Consider the depth and specificity of the AI's response in relation to the given line and its potential place in a larger movie narrative.
-        7. Assign a score from 1 to 5 based on the overall relevance of the AI's response to the given movie dialogue line.
-    """,
-}
 
 
-def prepare_batch_file(data, criteria_type):
+def prepare_batch_file(data: List[Dict[str, Any]], criteria_type: str) -> str:
+    """
+    Prepares a batch file request for scoring.
+
+    Args:
+        data (List[Dict[str, Any]]): The responses to be scored.
+        criteria_type (str): The name of the criteria being evaluated.
+
+    Returns:
+        str: The path to the created batch input file.
+    """
     batch_requests = []
     for i, record in enumerate(data):
         request = {
@@ -80,7 +31,7 @@ def prepare_batch_file(data, criteria_type):
             "body": {
                 "model": "gpt-4o-mini",
                 "messages": [
-                    {"role": "system", "content": prompts[criteria_type]},
+                    {"role": "system", "content": config.SCORING_PROMPTS[criteria_type]},
                     {"role": "user", "content": json.dumps(record)}
                 ],
                 "max_completion_tokens": 10,
@@ -113,11 +64,30 @@ def prepare_batch_file(data, criteria_type):
     return batch_file_path
 
 
-def calculate_adjusted_score(probabilities):
+def calculate_adjusted_score(probabilities: List[float]) -> float:
+    """
+    Calculates the adjusted score based on token probabilities.
+
+    Args:
+        probabilities (List[float]): The token probabilities for each score.
+
+    Returns:
+        float: The calculated adjusted score.
+    """
     return sum(prob * score for score, prob in zip(range(1, 6), probabilities))
 
 
-def submit_all_batches(all_data, criteria):
+def submit_all_batches(all_data: Dict[str, List[Dict[str, Any]]], criteria: List[str]) -> Dict[tuple, str]:
+    """
+    Submits all batches for scoring.
+
+    Args:
+        all_data (Dict[str, List[Dict[str, Any]]]): The responses to be scored for each model.
+        criteria (List[str]): The list of criteria to be evaluated.
+
+    Returns:
+        Dict[tuple, str]: A dictionary mapping (model, criteria_type) to batch job IDs.
+    """
     batch_jobs = {}
     for criteria_type in criteria:
         for model in all_data.keys():
@@ -135,7 +105,13 @@ def submit_all_batches(all_data, criteria):
     return batch_jobs
 
 
-def wait_for_batches(batch_jobs):
+def wait_for_batches(batch_jobs: Dict[tuple, str]) -> None:
+    """
+    Waits for all batch jobs to complete.
+
+    Args:
+        batch_jobs (Dict[tuple, str]): A dictionary of batch jobs to wait for.
+    """
     completed_jobs = set()
     while len(completed_jobs) < len(batch_jobs):
         for (model, criteria_type), batch_id in batch_jobs.items():
@@ -147,7 +123,16 @@ def wait_for_batches(batch_jobs):
         time.sleep(60)
 
 
-def load_existing_results(model):
+def load_existing_results(model: str) -> List[Dict[str, Any]]:
+    """
+    Loads existing results for a given model.
+
+    Args:
+        model (str): The model name.
+
+    Returns:
+        List[Dict[str, Any]]: The list of existing results.
+    """
     output_file = f"{config.G_EVAL_DIR}/model_evaluation_results_{model}_scored.json"
     if os.path.exists(output_file):
         with open(output_file, 'r', encoding='utf-8') as f:
@@ -155,7 +140,19 @@ def load_existing_results(model):
     return []
 
 
-def process_batch_results(all_data, batch_jobs, existing_results):
+def process_batch_results(all_data: Dict[str, List[Dict[str, Any]]], batch_jobs: Dict[tuple, str],
+                          existing_results: Dict[str, List[Dict[str, Any]]]) -> Dict[str, List[Dict[str, Any]]]:
+    """
+    Processes the results of all batch jobs.
+
+    Args:
+        all_data (Dict[str, List[Dict[str, Any]]]): The original responses for each model.
+        batch_jobs (Dict[tuple, str]): The batch jobs to process.
+        existing_results (Dict[str, List[Dict[str, Any]]]): Existing results for each model.
+
+    Returns:
+        Dict[str, List[Dict[str, Any]]]: Updated results including new scores.
+    """
     for (model, criteria_type), batch_id in batch_jobs.items():
         batch_status = client.batches.retrieve(batch_id)
         output_file = client.files.retrieve_content(batch_status.output_file_id)
@@ -190,32 +187,49 @@ def process_batch_results(all_data, batch_jobs, existing_results):
     return existing_results
 
 
-# Load data
-data_files = {
-    'dpo': f"{config.G_EVAL_DIR}/model_evaluation_results.json",
-    'ft': f"{config.G_EVAL_DIR}/model_evaluation_results_ft.json",
-    'base': f"{config.G_EVAL_DIR}/model_evaluation_results_base.json"
-}
+def load_data(model: str) -> List[Dict[str, Any]]:
+    """
+    Loads data for a given model.
 
-all_data = {}
-existing_results = {}
-for model, file_path in data_files.items():
+    Args:
+        model (str): The model name.
+
+    Returns:
+        List[Dict[str, Any]]: The loaded data for the model.
+    """
+    file_path = f"{config.G_EVAL_DIR}/model_evaluation_results_{model}.json"
     with open(file_path, 'r', encoding='utf-8') as f:
-        all_data[model] = json.load(f)[:2000]
-    existing_results[model] = load_existing_results(model)
+        return json.load(f)[:2000]
 
-print("Submitting all batches...")
-batch_jobs = submit_all_batches(all_data, criteria)
 
-print("Waiting for batches to complete...")
-wait_for_batches(batch_jobs)
+def save_results(updated_results: Dict[str, List[Dict[str, Any]]]) -> None:
+    """
+    Saves the updated results for each model.
 
-print("Processing batch results...")
-updated_results = process_batch_results(all_data, batch_jobs, existing_results)
+    Args:
+        updated_results (Dict[str, List[Dict[str, Any]]]): The updated results for each model.
+    """
+    for model, data in updated_results.items():
+        output_file = f"{config.G_EVAL_DIR}/model_evaluation_results_{model}_scored.json"
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
 
-for model, data in updated_results.items():
-    output_file = f"{config.G_EVAL_DIR}/model_evaluation_results_{model}_scored.json"
-    with open(output_file, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
 
-print("Evaluation complete. Results appended and saved.")
+def main():
+    data_files = {
+        'dpo': 'model_evaluation_results.json',
+        'ft': 'model_evaluation_results_ft.json',
+        'base': 'model_evaluation_results_base.json'
+    }
+
+    all_data = {model: load_data(model) for model in data_files.keys()}
+    existing_results = {model: load_existing_results(model) for model in data_files.keys()}
+    batch_jobs = submit_all_batches(all_data, criteria)
+    wait_for_batches(batch_jobs)
+
+    updated_results = process_batch_results(all_data, batch_jobs, existing_results)
+    save_results(updated_results)
+
+
+if __name__ == "__main__":
+    main()

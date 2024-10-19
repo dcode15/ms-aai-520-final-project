@@ -2,7 +2,7 @@ import json
 import os
 import random
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Dict
 
 import instructor
 from openai import OpenAI
@@ -16,7 +16,13 @@ llm_client = instructor.from_openai(OpenAI())
 data_file_path = f"{config.DPO_DATA_PATH}/dpo_data.json"
 
 
-def load_data():
+def load_data() -> List[Dict[str, str]]:
+    """
+    Loads existing DPO data from a JSON file if it exists.
+
+    Returns:
+        List[Dict[str, str]]: A list of DPO data entries.
+    """
     if os.path.exists(data_file_path):
         with open(data_file_path, 'r', encoding="utf-8") as file:
             return json.load(file)
@@ -24,12 +30,27 @@ def load_data():
         return []
 
 
-def write_data_file(data):
+def write_data_file(data: List[Dict[str, str]]) -> None:
+    """
+    Writes DPO data to a JSON file.
+
+    Args:
+        data (List[Dict[str, str]]): The DPO data to be written.
+    """
     with open(data_file_path, 'w', encoding="utf-8") as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
 
 
-def create_dpo_data(num_samples: int = 1500) -> list[dict]:
+def create_dpo_data(num_samples: int = 1500) -> List[Dict[str, str]]:
+    """
+    Creates DPO data by generating responses and using an LLM to compare them.
+
+    Args:
+        num_samples (int): The number of DPO data samples to create.
+
+    Returns:
+        List[Dict[str, str]]: A list of DPO data entries.
+    """
     data = load_data()
     chatbot = Chatbot()
     for _ in tqdm(range(num_samples), desc="Creating DPO dataset"):
@@ -71,6 +92,17 @@ def create_dpo_data(num_samples: int = 1500) -> list[dict]:
 
 
 def get_response_preference(query: str, response1: str, response2: str) -> Optional[int]:
+    """
+    Gets the preference between two responses using the LLM.
+
+    Args:
+        query (str): The original query.
+        response1 (str): The first response.
+        response2 (str): The second response.
+
+    Returns:
+        Optional[int]: 1 if response1 is preferred, 2 if response2 is preferred, None if invalid.
+    """
     prompt = f"""
 Given the following query and two possible responses, select the response that is most coherent and works best as dialogue from a movie. 
 Answer with either 1 or 2 and nothing else.
@@ -94,7 +126,11 @@ Response 2: {response2}"""
         return None
 
 
-if __name__ == "__main__":
+def main() -> None:
     Path(config.DPO_DATA_PATH).mkdir(parents=True, exist_ok=True)
     data = create_dpo_data()
     write_data_file(data)
+
+
+if __name__ == "__main__":
+    main()

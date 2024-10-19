@@ -1,34 +1,81 @@
 import json
 import os
+from typing import List, Dict
 
-from datasets import load_from_disk
+from datasets import load_from_disk, Dataset
 from tqdm import tqdm
 
 import config
 from inference import Chatbot
 
 
-def extract_prompt(formatted_text):
+def extract_prompt(formatted_text: str) -> str:
+    """
+    Extracts the user prompt from the formatted conversation text.
+
+    Args:
+        formatted_text (str): The formatted conversation text.
+
+    Returns:
+        str: The extracted user prompt.
+    """
     start = formatted_text.index("<|im_start|>user\n") + len("<|im_start|>user\n")
     end = formatted_text.index("<|im_end|>", start)
     return formatted_text[start:end].strip()
 
 
-def evaluate_model():
+def load_dataset() -> Dataset:
+    """
+    Loads the preprocessed dataset and return the test split.
+
+    Returns:
+        Dataset: The test dataset.
+    """
     dataset = load_from_disk(config.PREPROCESSED_DATA_PATH)
-    test_dataset = dataset['test']
+    return dataset['test']
 
-    chatbot = Chatbot(config.FINETUNED_MODEL_PATH)
 
-    os.makedirs(config.G_EVAL_DIR, exist_ok=True)
-    output_file = os.path.join(config.G_EVAL_DIR, "model_evaluation_results_ft.json")
+def load_existing_results(output_file: str) -> List[Dict[str, str]]:
+    """
+    Loads existing results from the output file if it exists.
 
-    results = []
+    Args:
+        output_file (str): The path to the output JSON file.
+
+    Returns:
+        List[Dict[str, str]]: The list of existing results, or an empty list if the file doesn't exist.
+    """
     if os.path.exists(output_file):
         with open(output_file, 'r', encoding='utf-8') as f:
-            results = json.load(f)
-    start_index = len(results)
+            return json.load(f)
+    return []
 
+
+def save_results(output_file: str, results: List[Dict[str, str]]) -> None:
+    """
+    Saves the evaluation results to a JSON file.
+
+    Args:
+        output_file (str): The path to the output JSON file.
+        results (List[Dict[str, str]]): The list of evaluation results.
+    """
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump(results, f, ensure_ascii=False, indent=2)
+
+
+def generate_responses(chatbot: Chatbot, test_dataset: Dataset, start_index: int) -> List[Dict[str, str]]:
+    """
+    Generates responses for the test dataset using the chatbot.
+
+    Args:
+        chatbot (Chatbot): The initialized chatbot.
+        test_dataset (Dataset): The test dataset.
+        start_index (int): The index to start generating responses from.
+
+    Returns:
+        List[Dict[str, str]]: The list of generated responses.
+    """
+    results = []
     for i, example in enumerate(tqdm(test_dataset)):
         if i < start_index:
             continue
@@ -44,14 +91,28 @@ def evaluate_model():
         results.append(result)
 
         if (i + 1) % 100 == 0:
-            with open(output_file, 'w', encoding='utf-8') as f:
-                json.dump(results, f, ensure_ascii=False, indent=2)
+            save_results(config.G_EVAL_DIR, results)
 
-    with open(output_file, 'w', encoding='utf-8') as f:
-        json.dump(results, f, ensure_ascii=False, indent=2)
+    return results
+
+
+def main() -> None:
+    os.makedirs(config.G_EVAL_DIR, exist_ok=True)
+    output_file = config.G_EVAL_DIR
+
+    test_dataset = load_dataset()
+    existing_results = load_existing_results(output_file)
+    start_index = len(existing_results)
+
+    chatbot = Chatbot(config.FINETUNED_MODEL_PATH)
+
+    new_results = generate_responses(chatbot, test_dataset, start_index)
+    all_results = existing_results + new_results
+
+    save_results(output_file, all_results)
 
     print(f"Evaluation complete. Results saved to {output_file}")
 
 
 if __name__ == "__main__":
-    evaluate_model()
+    main()

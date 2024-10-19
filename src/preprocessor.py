@@ -1,4 +1,5 @@
 import os
+from typing import List, Tuple
 
 from datasets import Dataset, load_from_disk, DatasetDict
 
@@ -7,7 +8,16 @@ import config
 
 class Preprocessor:
     @staticmethod
-    def _load_cornell_corpus(data_path: str) -> list:
+    def _load_cornell_corpus(data_path: str) -> List[Tuple[str, str]]:
+        """
+        Loads the Cornell Movie-Dialog Corpus into context/response pairs.
+
+        Args:
+            data_path (str): Path to the directory containing the corpus files.
+
+        Returns:
+            List[Tuple[str, str]]: A list of conversation pairs (context, response).
+        """
         movie_lines_path = os.path.join(data_path, "movie_lines.txt")
         movie_conversations_path = os.path.join(data_path, "movie_conversations.txt")
 
@@ -39,13 +49,28 @@ class Preprocessor:
         return conversation_pairs
 
     @staticmethod
-    def _format_conversation(conversation):
+    def _format_conversation(conversation: Tuple[str, str]) -> str:
+        """
+        Formats a conversation pair into the required format for the Qwen 2.5 model.
+
+        Args:
+            conversation (Tuple[str, str]): A tuple containing (context, response).
+
+        Returns:
+            str: Formatted conversation string.
+        """
         user_prompt = f"<|im_start|>user\n{conversation[0]}<|im_end|>"
         output = f"<|im_start|>assistant\n{conversation[1]}<|im_end|>"
         return f"{user_prompt}\n{output}<|endoftext|>"
 
     @staticmethod
-    def prepare_dataset():
+    def prepare_dataset() -> DatasetDict:
+        """
+        Prepares the dataset by loading or creating it from the Cornell Movie-Dialog Corpus.
+
+        Returns:
+            DatasetDict: A dataset dictionary containing 'train', 'validation', and 'test' splits.
+        """
         if os.path.exists(config.PREPROCESSED_DATA_PATH):
             print(f"Loading preprocessed dataset from {config.PREPROCESSED_DATA_PATH}")
             dataset = load_from_disk(config.PREPROCESSED_DATA_PATH)

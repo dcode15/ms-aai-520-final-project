@@ -1,4 +1,5 @@
 import re
+from typing import List, Dict, Optional
 
 import torch
 from peft import PeftModel
@@ -8,8 +9,17 @@ import config
 
 
 class Chatbot:
+    """
+    A chatbot class for handling conversations with a model.
+    """
 
-    def __init__(self, model_path: str = None):
+    def __init__(self, model_path: Optional[str] = None):
+        """
+        Initializes the Chatbot with a specified model or the default DPO model.
+
+        Args:
+            model_path (Optional[str]): Path to the model. If None, uses the default DPO model.
+        """
         if model_path is None:
             model_path = config.TRAINED_DPO_MODEL_PATH
         self.model_path = model_path
@@ -31,10 +41,16 @@ class Chatbot:
             self.model = PeftModel.from_pretrained(self.model, model_path)
 
         self.model.eval()
-        self.conversation = []
+        self.conversation: List[Dict[str, str]] = []
         self.start_conversation()
 
-    def start_conversation(self, previous_conversation: list[dict] = None):
+    def start_conversation(self, previous_conversation: Optional[List[Dict[str, str]]] = None) -> None:
+        """
+        Starts a new conversation or continues from a previous one.
+
+        Args:
+            previous_conversation (Optional[List[Dict[str, str]]]): A list of previous conversation messages.
+        """
         new_conversation = []
 
         if self.model_path == config.BASE_MODEL_NAME:
@@ -45,7 +61,18 @@ class Chatbot:
         self.conversation = new_conversation
 
     def generate_response(self, input_text: str, max_length: int = config.INFERENCE_MAX_LENGTH,
-                          config_override: dict = None) -> str:
+                          config_override: Optional[Dict] = None) -> str:
+        """
+        Generates a response to the given input text.
+
+        Args:
+            input_text (str): The input text to respond to.
+            max_length (int): The maximum length of the generated response.
+            config_override (Optional[Dict]): Override default inference parameters.
+
+        Returns:
+            str: The generated response.
+        """
         self.conversation.append({
             "role": "user",
             "content": input_text
@@ -74,6 +101,15 @@ class Chatbot:
         return reply
 
     def _clean_text(self, text: str) -> str:
+        """
+        Cleans the generated text by removing non-ASCII characters and truncating to the last sentence.
+
+        Args:
+            text (str): The text to clean.
+
+        Returns:
+            str: The cleaned text.
+        """
         # Remove non-ASCII characters
         text = re.sub(r'[^\x00-\x7F]+', '', text)
 
