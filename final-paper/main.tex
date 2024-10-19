@@ -101,7 +101,7 @@
     It works by optimizing the usage of shared random-access memory (SRAM) as opposed to much slower high-bandwidth memory (HBM), resulting in faster computations and decreased memory usage~\parencite{flash_attention}.
 
     \customsubsection{Gradient Accumulation}{gradient_accumulation}
-    Gradient accumulation is a technique where gradients are summed over multiple mini-batches, and parameters are only updated after a set number of mini-batches rather than after every batch.
+    Gradient accumulation is a technique where gradients are summed over multiple mini-batches, and gradients are only updated after a set number of mini-batches rather than after every batch.
     This can allow the use of larger simulated batch sizes than are otherwise possible due to memory limitations~\parencite{gradient_accumulation}.
 
     \customsubsection{NEFTune}{neftune}
@@ -196,7 +196,7 @@
 
     \customsubsection{More Data, More Paramaters}
 
-    The Cornell Movie Dialog corpus is currently six years old, so the model could be improved by incorporating additional data from more recent movies to keep its language up-to-date.
+    The Cornell Movie Dialog corpus is currently thirteen years old, so the model could be improved by incorporating additional data from more recent movies to keep its language up-to-date.
     Tuning on datasets representing different genres could also give the model better a better ability to handle more diverse prompt topics.
 
     With more GPU resources, using larger base models would be one of the simplest ways to make large improvements to the quality of the model.
