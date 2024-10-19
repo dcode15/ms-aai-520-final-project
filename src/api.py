@@ -26,7 +26,8 @@ def init_models() -> tuple[Chatbot, Chatbot, Chatbot]:
     ),
     on_start=init_models,
     authorized=False,
-    gpu="T4"
+    gpu="RTX4090",
+    keep_warm_seconds=600
 )
 def web_server(context: Any) -> FastAPI:
     """
