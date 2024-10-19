@@ -54,7 +54,7 @@
     \customsection{Model Selection}{model_selection}
 
     For this project, the Qwen 2.5 3B base model was selected as the base model.
-    This model was released in September 2024 and is part of the broader Qwen series of models developed by the Alibaba Group~\parencite{qwen_2.5}.
+    This model was released in September 2024 and is part of the broader Qwen series of models developed by the Alibaba Group~\parencite{qwen}.
 
     One of the largest constraints in developing the dialogue model was in the amount of GPU compute and VRAM available, as all model training was done on a single NVIDIA RTX 3060ti with 8 gigabytes of VRAM.
     This greatly limited the size of model that could be used, making the Qwen series appealing due to its inclusion of 0.5 billion, 1.5 billion, and 3 billion parameter models.
@@ -138,18 +138,56 @@
 
     \customsection{Evaluation}{evaluation}
 
-    \customsubsection{Automated Metrics}{automated_metrics}
+    This model's creative nature made many common evaluation metrics like BLEU and ROUGE less useful than for more common LLM tasks like summarization or machine translation.
+    To address this, human evaluation was combined with G-Eval, an automated LLM-based technique that has shown much greater alignment with human preference than BLEU or ROUGE in dialogue generation tasks~\parencite{g_eval}.
+
+    \customsubsection{G-Eval}{g_eval}
+
+    G-Eval uses automatic chain-of-\thought prompting to score responses across a set of criteria.
+    To do this, initial prompts were created for four criteria (coherence, consistency, fluency, relevance) that defined the task and the evaluation criteria.
+    This initial prompt was then passed into the GPT-4o large language model for it to expand the prompt with chain-of-thought steps for assigning a score between one and 5 for a prompt-response pair.
+    The full set of final prompts can be seen in Appendix A.
+
+    Each of the three model iterations (base, fine-tuned, and fine-tuned with DPO) were then used to generate a response to 2,000 prompts from the test dataset.
+    For each of the four criteria, the resulting 6,000 responses were then passed into the GPT-4o Mini model along with the corresponding criteria prompt to obtain a score, resulting in 24,000 total evaluations.
+    The use of GPT-4o models to perform both the DPO tuning and evaluation presents a possible weakness in this methodology due to possible over-inflation of evaluation scores due to alignment between the two processes.
+    To address this, Claude Sonnet 3.5 was initially used for the G-Eval evaluations, but was found to be too slow and expensive to be feasible for the volume of data, prompting the switch to GPT-4o Mini.
+
+    To obtain a more nuanced evaluation score than a simple 1-5 scoring, the token log-probabilities from the evaluation responses were used to find the model's relative likelihood of selecting each score.
+    These log-probabilities were then used to weight each score and arrive at a final adjusted score, meaning that a high-confidence 5 would score higher than a 5 that was barely selected over a 4.
 
     \customsubsection{Human Evaluation}{human_evaluation}
 
-    This model's creative nature made many automated evaluation metrics less useful than for more common LLM tasks like summarization or machine translation.
-    To get a more comprehensive picture of the final model's performance, human evaluation was performed as well.
-    This was done by giving two individuals 100 prompts from the test dataset along with responses from the base Qwen 2.5 model, fine-tuned model, and fine-tuned model with DPO.
+    Human evaluation was performed by giving two individuals 100 prompts from the test dataset along with responses from the base Qwen 2.5 model, fine-tuned model, and fine-tuned model with DPO.
     The individuals then chose the response they thought was most coherent and interesting in the context of movie dialogue.
     To better evaluate the Qwen 2.5 base model's ability to perform the task, it was given the system prompt: \q{Respond to all prompts with realistic and natural dialogue lines}.
 
     Human evaluation showed strong preference for the tuned models, with the final model with DPO being chosen 52\% of the time, the fine-tuned-only model being chosen 37\% of the time, and the base model being chosen 11\% of the time.
-    Subjectively, evaluators noted that the fine-tuned model sometimes showed more creativity in creating interesting responses than the final model that had undergone DPO, but the DPO model was more consistently coherent and less likely to create repetitive, rambling answers.
+
+    \customsubsection{Results}{eval_results}
+
+    Figure~\ref{fig:eval-metrics} shows the average score (scaled from zero to one) of each model across all G-Eval metrics, as well as the preference proportions from the head-to-head human evaluations.
+    These results show consistent improvements across all metrics between the base model and fine-tuned model, as well as between the fine-tuned model and DPO model.
+    This indicates that both the fine-tuning process and DPO tuning were able to provide significant boosts to model quality.
+
+    \begin{figure}[tb]
+        \centering
+        \includegraphics[width=1\textwidth]{figures/eval-metrics-light}
+        \caption{Evaluation scores across all metrics.}
+        \label{fig:eval-metrics}
+    \end{figure}
+
+    Examining the score distributions in Figure~\ref{fig:eval-boxplot} gives more insight into model performance.
+    While both G-Eval and human evaluation found that the base model did sometimes provide responses on par with or better than the other models, it was also much more likely to give very poor answers.
+    The fine-tuned model achieved median and top-quartile performance comparable to the DPO model across all metrics except consistency, but its average score was pulled down significantly by being much more likely to provide low-scoring responses than the DPO model.
+    This suggests that while the DPO tuning process only resulted in slight improvements among high-quality answers, it resulted in large reductions in low-quality answers.
+
+    \begin{figure}[tb]
+        \centering
+        \includegraphics[width=1\textwidth]{figures/eval-boxplot-light}
+        \caption{G-Eval scores distributions.}
+        \label{fig:eval-boxplot}
+    \end{figure}
 
     \customsection{Future Improvements and Scalability}{future_improvements}
 

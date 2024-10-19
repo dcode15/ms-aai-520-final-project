@@ -8,6 +8,7 @@ src/out
 final-paper/*
 !final-paper/main.tex
 !final-paper/main.bib
+!final-paper/figures
 
 *.pyc
 

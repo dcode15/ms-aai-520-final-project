@@ -201,7 +201,7 @@ all_data = {}
 existing_results = {}
 for model, file_path in data_files.items():
     with open(file_path, 'r', encoding='utf-8') as f:
-        all_data[model] = json.load(f)[750:1000]
+        all_data[model] = json.load(f)[:2000]
     existing_results[model] = load_existing_results(model)
 
 print("Submitting all batches...")
