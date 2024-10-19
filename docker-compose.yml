@@ -32,6 +32,9 @@ services:
   evaluate-model:
     <<: *common-params
     entrypoint: ["python", "evaluate_model.py"]
+  generate-test-responses:
+    <<: *common-params
+    entrypoint: [ "python", "generate_test_responses.py" ]
 
 
 volumes:

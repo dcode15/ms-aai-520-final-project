@@ -51,7 +51,7 @@ TUNING_TRAINER_ARGS = {
 }
 
 # Inference parameters
-SYSTEM_PROMPT = "Respond to all prompts with realistic and natural dialogue lines."
+SYSTEM_PROMPT = "You are a character in a movie. Respond with engaging dialogue."
 INFERENCE_MAX_LENGTH = 64
 INFERENCE_PARAMS = {
     "no_repeat_ngram_size": 2,
